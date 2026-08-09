@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obra no encontrada - BookNFC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --warning: #ffb703;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .not-found-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 440px;
+            width: 100%;
+            padding: 32px 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 18px;
+        }
+
+        .icon-container {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 183, 3, 0.1);
+            border: 1px solid rgba(255, 183, 3, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--warning);
+            font-size: 1.8em;
+        }
+
+        h2 {
+            font-size: 1.35em;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .nfc-key-badge {
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1em;
+            font-weight: 700;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="not-found-card">
+        <div class="icon-container">
+            <i class="fa-solid fa-nfc-symbol"></i>
+        </div>
+
+        <h2>Tarjeta NFC no registrada</h2>
+
+        <p>El código vinculado a esta tarjeta no coincide con ninguna obra disponible en el sistema:</p>
+
+        <div class="nfc-key-badge">{{ nfc_key }}</div>
+
+        <p style="font-size: 0.82em;">Si eres administrador, puedes vincular esta llave asignándola a una obra desde el
+            panel de control.</p>
+
+        <div class="actions">
+            <a href="/gallery" class="btn"><i class="fa-solid fa-layer-group"></i> Galería</a>
+            <a href="/admin" class="btn btn-primary"><i class="fa-solid fa-user-gear"></i> Admin</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

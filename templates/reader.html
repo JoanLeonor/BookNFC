@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ book.title }} - Lector Web BookNFC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Librerías de Lectura -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .reader-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .book-info h1 {
+            font-size: 1.05em;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        .format-badge {
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            font-size: 0.72em;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-ctrl {
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .btn-ctrl:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .page-counter {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            min-width: 70px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .reader-viewport {
+            flex-grow: 1;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background-color: #05070a;
+            scroll-behavior: smooth;
+        }
+
+        /* CONTENEDOR PDF VERTICAL */
+        #pdf-viewer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .pdf-page-canvas {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            margin-bottom: 16px;
+        }
+
+        /* CONTENEDOR EPUB VERTICAL */
+        #epub-viewer {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* CONTENEDOR CÓMICS Y MANGAS VERTICAL */
+        #cbz-viewer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+
+        #cbz-viewer img {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 50;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="reader-header">
+        <div class="book-info">
+            <a href="javascript:history.back()" class="btn-ctrl" title="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h1>{{ book.title }}</h1>
+            <span class="format-badge" id="fileExtBadge">FORMATO</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn-ctrl" id="prevBtn" title="Anterior"><i class="fa-solid fa-chevron-up"></i></button>
+            <span class="page-counter" id="pageNumDisplay">-- / --</span>
+            <button class="btn-ctrl" id="nextBtn" title="Siguiente"><i class="fa-solid fa-chevron-down"></i></button>
+            <button class="btn-ctrl" id="fullscreenBtn" title="Pantalla Completa"><i
+                    class="fa-solid fa-expand"></i></button>
+            <a href="/download/{{ book.file }}" class="btn-ctrl" title="Descargar" download>
+                <i class="fa-solid fa-download"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="reader-viewport" id="viewport">
+        <div class="loading-overlay" id="loader">
+            <div class="spinner"></div>
+            <p style="font-size: 0.9em; color: var(--text-muted);" id="loaderText">Cargando obra digital...</p>
+        </div>
+
+        <div id="pdf-viewer" style="display: none;"></div>
+        <div id="epub-viewer" style="display: none;"></div>
+        <div id="cbz-viewer" style="display: none;"></div>
+    </main>
+
+    <script>
+        const fileUrl = "/download/{{ book.file }}";
+        const fileExt = "{{ file_ext }}".toLowerCase().trim();
+        const serverCbrImages = {{ cbr_images | tojson }};
+
+        document.getElementById('fileExtBadge').innerText = fileExt ? fileExt.toUpperCase() : "DESCONOCIDO";
+
+        let currentPage = 1;
+        let totalPages = 0;
+        let pdfDoc = null;
+        let epubBook = null;
+        let epubRendition = null;
+        let comicImagesList = [];
+
+        const viewport = document.getElementById('viewport');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        });
+
+        // EVALUACIÓN DE EXTENSIONES Y LECTORES
+        if (fileExt === 'pdf') {
+            initPdfReader();
+        } else if (fileExt === 'epub') {
+            initEpubReader();
+        } else if (fileExt === 'cbr') {
+            if (serverCbrImages && serverCbrImages.length > 0) {
+                comicImagesList = serverCbrImages;
+                initComicReader();
+            } else {
+                showError("No se pudieron extraer imágenes del archivo CBR.");
+            }
+        } else if (['cbz', 'zip'].includes(fileExt)) {
+            initCbzReader();
+        } else {
+            document.getElementById('loaderText').innerText = "Formato (." + fileExt + ") no compatible para lectura interactiva. Iniciando descarga...";
+            setTimeout(() => { window.location.href = fileUrl; }, 2000);
+        }
+
+        // ---------- LECTOR PDF VERTICAL CONTINUO ----------
+        function initPdfReader() {
+            const container = document.getElementById('pdf-viewer');
+            container.style.display = 'flex';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+            pdfjsLib.getDocument(fileUrl).promise.then(async doc => {
+                pdfDoc = doc;
+                totalPages = doc.numPages;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await doc.getPage(i);
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page-canvas';
+                    canvas.id = `pdf-page-${i}`;
+
+                    const ctx = canvas.getContext('2d');
+                    const viewportPdf = page.getViewport({ scale: 1.5 });
+                    canvas.height = viewportPdf.height;
+                    canvas.width = viewportPdf.width;
+                    await page.render({ canvasContext: ctx, viewport: viewportPdf }).promise;
+                    container.appendChild(canvas);
+                }
+
+                hideLoader();
+                updatePageDisplay(1, totalPages);
+            }).catch(err => showError("Error al cargar PDF: " + err.message));
+
+            viewport.onscroll = () => {
+                if (totalPages > 0) {
+                    const canvases = container.getElementsByClassName('pdf-page-canvas');
+                    for (let i = 0; i < canvases.length; i++) {
+                        const rect = canvases[i].getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                            currentPage = i + 1;
+                            updatePageDisplay(currentPage, totalPages);
+                            break;
+                        }
+                    }
+                }
+            };
+
+            prevBtn.onclick = () => {
+                if (currentPage > 1) { currentPage--; scrollToElement('pdf-page-' + currentPage); }
+            };
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) { currentPage++; scrollToElement('pdf-page-' + currentPage); }
+            };
+        }
+
+        // ---------- LECTOR EPUB VERTICAL CONTINUO ----------
+        function initEpubReader() {
+            const container = document.getElementById('epub-viewer');
+            container.style.display = 'block';
+            epubBook = ePub(fileUrl);
+
+            epubRendition = epubBook.renderTo("epub-viewer", {
+                width: "100%",
+                height: "100%",
+                flow: "scrolled-doc"
+            });
+
+            epubRendition.display().then(() => {
+                hideLoader();
+                updatePageDisplay(1, '∞');
+            });
+
+            epubRendition.themes.default({
+                'body': { 'background': '#0b0e14 !important', 'color': '#f3f4f6 !important', 'font-family': 'sans-serif', 'line-height': '1.6' }
+            });
+
+            prevBtn.onclick = () => viewport.scrollBy({ top: -300, behavior: 'smooth' });
+            nextBtn.onclick = () => viewport.scrollBy({ top: 300, behavior: 'smooth' });
+        }
+
+        // ---------- LECTOR CBZ / CBR VERTICAL CONTINUO ----------
+        function initCbzReader() {
+            fetch(fileUrl)
+                .then(res => res.arrayBuffer())
+                .then(data => JSZip.loadAsync(data))
+                .then(zip => {
+                    const promises = [];
+                    const validExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+                    zip.forEach((path, entry) => {
+                        const ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+                        if (!entry.dir && validExts.includes(ext)) {
+                            promises.push(entry.async('blob').then(b => ({ name: path, url: URL.createObjectURL(b) })));
+                        }
+                    });
+                    return Promise.all(promises);
+                })
+                .then(images => {
+                    const sorted = images.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+                    comicImagesList = sorted.map(i => i.url);
+                    if (comicImagesList.length > 0) {
+                        initComicReader();
+                    } else {
+                        showError("El archivo CBZ/ZIP no contiene imágenes válidas.");
+                    }
+                })
+                .catch(err => showError("Error leyendo CBZ: " + err.message));
+        }
+
+        function initComicReader() {
+            const container = document.getElementById('cbz-viewer');
+            container.style.display = 'flex';
+            totalPages = comicImagesList.length;
+
+            comicImagesList.forEach((src, idx) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.id = `comic-page-${idx + 1}`;
+                img.loading = "lazy";
+                container.appendChild(img);
+            });
+
+            hideLoader();
+            updatePageDisplay(1, totalPages);
+
+            viewport.onscroll = () => {
+                if (totalPages > 0) {
+                    const imgs = container.getElementsByTagName('img');
+                    for (let i = 0; i < imgs.length; i++) {
+                        const rect = imgs[i].getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                            currentPage = i + 1;
+                            updatePageDisplay(currentPage, totalPages);
+                            break;
+                        }
+                    }
+                }
+            };
+
+            prevBtn.onclick = () => {
+                if (currentPage > 1) { currentPage--; scrollToElement('comic-page-' + currentPage); }
+            };
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) { currentPage++; scrollToElement('comic-page-' + currentPage); }
+            };
+        }
+
+        function scrollToElement(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function updatePageDisplay(current, total) {
+            document.getElementById('pageNumDisplay').innerText = `${current} / ${total || '--'}`;
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function showError(msg) {
+            document.getElementById('loaderText').innerText = msg;
+            document.getElementById('loaderText').style.color = '#ff4d6d';
+        }
+    </script>
+</body>
+
+</html>

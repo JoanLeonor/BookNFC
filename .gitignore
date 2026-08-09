@@ -1,0 +1,27 @@
+# Entornos virtuales de Python
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Archivos de configuración local y base de datos con contraseñas
+config.json
+books.json
+notas.md
+
+# Archivos multimedia, documentos subidos y caché temporal
+static/uploads/*
+static/covers/*
+static/cache/*
+
+# Excluir los marcadores de posición de las carpetas de subida para mantener la estructura vacía si se desea
+!static/uploads/.gitkeep
+!static/covers/.gitkeep
+!static/cache/.gitkeep
+
+# IDEs y Editores de código
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

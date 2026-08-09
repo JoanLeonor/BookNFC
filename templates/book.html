@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }} - BookNFC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 480px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cover-header {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background-color: #05070a;
+            overflow: hidden;
+        }
+
+        .cover-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nfc-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(11, 14, 20, 0.85);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85em;
+            font-weight: 700;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .title {
+            font-size: 1.5em;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+        }
+
+        .synopsis {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            color: #000;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card-container">
+        <div class="cover-header">
+            <img src="/static/covers/{{ book.cover }}" alt="{{ book.title }}">
+            <span class="nfc-badge"><i class="fa-solid fa-nfc-symbol"></i> {{ book.nfc_key }}</span>
+        </div>
+
+        <div class="card-content">
+            <h1 class="title">{{ book.title }}</h1>
+
+            <div class="synopsis">
+                {{ book.synopsis }}
+            </div>
+
+            <div class="actions">
+                <a href="/read/{{ book.id }}" class="btn btn-primary">
+                    <i class="fa-solid fa-book-open"></i> Abrir Lector Web
+                </a>
+                <a href="/download/{{ book.file }}" class="btn" download>
+                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                </a>
+            </div>
+
+            <div class="footer-note">
+                <i class="fa-solid fa-microchip"></i> Servido localmente desde Raspberry Pi
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

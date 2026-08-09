@@ -1,0 +1,10 @@
+[
+    {
+        "id": "3c6d150e",
+        "title": "Ejemplo de Obra",
+        "nfc_key": "NFC-EJEMPLO",
+        "synopsis": "Esta es una obra de ejemplo. Modifica o elimina este elemento en tu base de datos.",
+        "cover": "cover_ejemplo.jpg",
+        "file": "doc_ejemplo.cbr"
+    }
+]
