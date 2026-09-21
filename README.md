@@ -8,13 +8,22 @@ El proyecto está diseñado y optimizado para ser extremadamente ligero y eficie
 
 ## 📸 Capturas de Pantalla
 
-| Galería Principal | Vista de Obra (NFC) | Panel de Control de Administración |
+| Galería Principal | Estación de Música Hi-Fi | Vista de Obra (NFC) |
 |:---:|:---:|:---:|
-| ![Galería Principal](Capturas/pantalla%20gallery.png) | ![Vista Obra](Capturas/pantalla%20nfc%20A.png) | ![Panel Admin](Capturas/pantalla%20admin.png) |
+| ![Galería Principal](Capturas/pantalla%20gallery.png) | ![Música Hi-Fi](Capturas/pantalla%20music.png) | ![Vista Obra](Capturas/pantalla%20nfc%20A.png) |
 
-| Login de Administración | Carga Masiva (Batch) | Error NFC No Asignado |
+| Panel de Administración | Importador por Carpetas | Carga Masiva (Batch) |
 |:---:|:---:|:---:|
-| ![Login](Capturas/pantalla%20login.png) | ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
+| ![Panel Admin](Capturas/pantalla%20admin.png) | ![Importador](Capturas/pantalla%20folder%20import.png) | ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) |
+
+| Gestor de Archivos Multimedia | Conversor MP4 en Tiempo Real | Limpiador y Huérfanos |
+|:---:|:---:|:---:|
+| ![Archivos](Capturas/pantalla%20files.png) | ![Conversor](Capturas/pantalla%20converter.png) | ![Limpiador](Capturas/pantalla%20cleaner.png) |
+
+| Login de Administración | Error NFC No Asignado |
+|:---:|:---:|
+| ![Login](Capturas/pantalla%20login.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
+
 
 ---
 
