@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapBox - Optimizador y Limpieza de Almacenamiento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0e14;
+            --bg-secondary: #151a23;
+            --bg-card: rgba(21, 26, 35, 0.85);
+            --bg-card-hover: rgba(28, 35, 48, 0.95);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(0, 242, 254, 0.3);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --vlc-orange: #ff8800;
+            --vlc-orange-light: #ffaa33;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --success: #00e676;
+            --success-bg: rgba(0, 230, 118, 0.12);
+            --danger: #ff4d6d;
+            --danger-bg: rgba(255, 77, 109, 0.12);
+            --warning: #ffb703;
+            --warning-bg: rgba(255, 183, 3, 0.12);
+            --info: #58a6ff;
+            --purple: #bc8cff;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 95% 90%, rgba(255, 136, 0, 0.05) 0%, transparent 40%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px 24px 60px;
+        }
+
+        /* HEADER */
+        .header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1350px;
+            margin: 0 auto 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            background: rgba(0, 242, 254, 0.12);
+            color: var(--accent-cyan);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1350px;
+            margin: 0 auto;
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-accent);
+        }
+
+        .stat-icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-cyan { background: rgba(0, 242, 254, 0.12); color: var(--accent-cyan); }
+        .stat-icon-green { background: var(--success-bg); color: var(--success); }
+        .stat-icon-orange { background: rgba(255, 136, 0, 0.12); color: var(--vlc-orange); }
+        .stat-icon-purple { background: rgba(187, 128, 255, 0.12); color: var(--purple); }
+
+        .stat-info h4 {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .stat-info .stat-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* HERO CLEANER BANNER */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(21, 26, 35, 0.95), rgba(15, 19, 26, 0.98));
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .hero-left h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-left p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 650px;
+            line-height: 1.5;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-action-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        .btn-action-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+        }
+
+        .btn-action-orange {
+            background: linear-gradient(135deg, var(--vlc-orange), var(--vlc-orange-light));
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 136, 0, 0.35);
+        }
+
+        .btn-action-orange:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 136, 0, 0.5);
+        }
+
+        .btn-action-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-action-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* STORAGE PROGRESS BAR */
+        .storage-bar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .storage-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .storage-track {
+            height: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+            display: flex;
+        }
+
+        .storage-fill-movies { background: #ff8800; }
+        .storage-fill-torrents { background: #ff4d6d; }
+        .storage-fill-uploads { background: #bc8cff; }
+        .storage-fill-other { background: #58a6ff; }
+
+        .storage-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        /* DUAL PANELS */
+        .dual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 950px) {
+            .dual-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 440px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* LIST OF ITEMS */
+        .items-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+            max-height: 380px;
+        }
+
+        .clean-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .clean-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 77, 109, 0.3);
+        }
+
+        .clean-item-info {
+            min-width: 0;
+        }
+
+        .clean-item-title {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+
+        .clean-item-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clean-btn-del {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(255, 77, 109, 0.3);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .clean-btn-del:hover {
+            background: rgba(255, 77, 109, 0.25);
+            color: #ff7b72;
+        }
+
+        /* TERMINAL LOGS */
+        .terminal-box {
+            flex: 1;
+            background: #07090e;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            color: #7ee787;
+            overflow-y: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 380px;
+        }
+
+        .log-line { margin-bottom: 4px; }
+        .log-line.error { color: #ff7b72; }
+        .log-line.info { color: #79c0ff; }
+        .log-line.success { color: #7ee787; }
+        .log-line.warn { color: #ffb703; }
+
+        .empty-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--text-muted);
+            gap: 12px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER NAVIGATION -->
+    <header class="header-nav">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-broom"></i></div>
+            <div class="brand-title">TapBox</div>
+            <span class="brand-badge">Limpieza y Espacio</span>
+        </a>
+        <nav class="nav-links">
+            <a href="/" class="nav-btn"><i class="fa-solid fa-house"></i> Inicio</a>
+            <a href="/converter" class="nav-btn"><i class="fa-solid fa-bolt" style="color: var(--vlc-orange);"></i> Conversor MP4</a>
+            <a href="/files" class="nav-btn"><i class="fa-solid fa-hard-drive" style="color: var(--info);"></i> Archivos</a>
+            <a href="/admin" class="nav-btn"><i class="fa-solid fa-sliders"></i> Panel Admin</a>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <!-- TOP STATS CARDS -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-cyan">
+                    <i class="fa-solid fa-hard-drive"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Disco Principal (/)</h4>
+                    <div class="stat-value" id="diskUsageVal">--</div>
+                    <div class="stat-sub" id="diskSubVal">Cargando...</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Espacio Disponible</h4>
+                    <div class="stat-value" id="diskAvailVal" style="color: var(--success);">--</div>
+                    <div class="stat-sub" id="diskAvailSub">Espacio libre en disco</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-orange">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Biblioteca Películas</h4>
+                    <div class="stat-value" id="moviesSizeVal">--</div>
+                    <div class="stat-sub">/data/media/movies</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-purple">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Cómics / Anime</h4>
+                    <div class="stat-value" id="uploadsSizeVal">--</div>
+                    <div class="stat-sub">static/uploads</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HERO BANNER -->
+        <section class="hero-banner">
+            <div class="hero-left">
+                <h2><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-cyan);"></i> Optimizador de Almacenamiento</h2>
+                <p>
+                    Detecta automáticamente copias duplicadas de torrents antiguos cuyas películas ya fueron convertidas a MP4 Web, así como archivos temporales residuales o incompletos.
+                </p>
+            </div>
+            <div class="hero-actions">
+                <button class="btn-action btn-action-primary" onclick="triggerCleanDuplicates()" id="btnCleanAll">
+                    <i class="fa-solid fa-broom"></i> Limpiar Duplicados y Temporales
+                </button>
+                <a href="/converter" class="btn-action btn-action-orange">
+                    <i class="fa-solid fa-play"></i> Ir al Conversor MP4
+                </a>
+                <button class="btn-action btn-action-secondary" onclick="fetchCleanerStatus()">
+                    <i class="fa-solid fa-rotate"></i> Escanear
+                </button>
+            </div>
+        </section>
+
+        <!-- STORAGE BREAKDOWN BAR -->
+        <section class="storage-bar-card">
+            <div class="storage-bar-header">
+                <span><i class="fa-solid fa-chart-pie" style="color: var(--accent-cyan);"></i> Distribución del Almacenamiento en Disco</span>
+                <span id="storagePercentLabel">--% Ocupado</span>
+            </div>
+            <div class="storage-track" id="storageTrackBar">
+                <div class="storage-fill-movies" id="barMovies" style="width: 15%;" title="Películas"></div>
+                <div class="storage-fill-torrents" id="barTorrents" style="width: 35%;" title="Torrents"></div>
+                <div class="storage-fill-uploads" id="barUploads" style="width: 15%;" title="Uploads"></div>
+                <div class="storage-fill-other" id="barOther" style="width: 5%;" title="Sistema / Otros"></div>
+            </div>
+            <div class="storage-legend">
+                <div class="legend-item"><span class="legend-dot" style="background: #ff8800;"></span> Películas Web (<span id="legendMovies">--</span>)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #ff4d6d;"></span> Torrents / Descargas (<span id="legendTorrents">--</span>)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #bc8cff;"></span> Cómics y Anime (<span id="legendUploads">--</span>)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: #58a6ff;"></span> Sistema / Docker (<span id="legendOther">--</span>)</div>
+                <div class="legend-item"><span class="legend-dot" style="background: rgba(255,255,255,0.2);"></span> Espacio Libre (<span id="legendFree">--</span>)</div>
+            </div>
+        </section>
+
+        <!-- DUAL COLUMN: DUPLICATES LIST & TERMINAL LOGS -->
+        <div class="dual-grid">
+            <!-- LISTA DE ARCHIVOS DETECTADOS -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-copy" style="color: var(--danger);"></i> Torrents / Duplicados Detectados</h3>
+                    <span style="font-size: 12px; color: var(--text-secondary);" id="dupCountBadge">0 elementos</span>
+                </div>
+                <div class="items-list" id="dupListContainer">
+                    <div class="empty-box">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px;"></i>
+                        <span>Escaneando almacenamiento...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REGISTRO Y CONSOLA EN VIVO -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-terminal" style="color: #79c0ff;"></i> Registro de Mantenimiento</h3>
+                    <button class="nav-btn" style="padding: 4px 10px; font-size: 11px;" onclick="clearLogs()">
+                        <i class="fa-solid fa-eraser"></i> Limpiar
+                    </button>
+                </div>
+                <div class="terminal-box" id="terminalLog">
+                    <div class="log-line info">[INFO] Conectado al módulo de optimización de disco TapBox.</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function logMessage(text, type = "info") {
+            const term = document.getElementById('terminalLog');
+            const d = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `log-line ${type}`;
+            div.innerText = `[${d}] ${text}`;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('terminalLog').innerHTML = '<div class="log-line info">[INFO] Consola reiniciada.</div>';
+        }
+
+        async function fetchCleanerStatus() {
+            try {
+                logMessage("Escaneando directorios y particiones...", "info");
+                const res = await fetch('/api/cleaner/status');
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                renderCleaner(data);
+                logMessage(`Escaneo completado. Disco al ${data.disk_used_percent}% (${data.disk_avail} libres).`, "success");
+            } catch (e) {
+                logMessage("Error al obtener estado: " + e.message, "error");
+            }
+        }
+
+        function renderCleaner(data) {
+            // Stats
+            document.getElementById('diskUsageVal').innerText = `${data.disk_used} / ${data.disk_total}`;
+            document.getElementById('diskSubVal').innerText = `${data.disk_used_percent}% Ocupado`;
+            document.getElementById('diskAvailVal').innerText = data.disk_avail;
+            document.getElementById('moviesSizeVal').innerText = data.movies_size || '--';
+            document.getElementById('uploadsSizeVal').innerText = data.uploads_size || '--';
+            document.getElementById('storagePercentLabel').innerText = `${data.disk_used_percent}% Ocupado`;
+
+            // Legends
+            document.getElementById('legendMovies').innerText = data.movies_size || '0 GB';
+            document.getElementById('legendTorrents').innerText = data.torrents_size || '0 GB';
+            document.getElementById('legendUploads').innerText = data.uploads_size || '0 GB';
+            document.getElementById('legendOther').innerText = data.other_size || '0 GB';
+            document.getElementById('legendFree').innerText = data.disk_avail || '0 GB';
+
+            // Bars
+            const totalGb = parseFloat(data.disk_total) || 454;
+            const moviesGb = parseFloat(data.movies_size) || 0;
+            const torrentsGb = parseFloat(data.torrents_size) || 0;
+            const uploadsGb = parseFloat(data.uploads_size) || 0;
+            const otherGb = Math.max(0, (parseFloat(data.disk_used) || 0) - (moviesGb + torrentsGb + uploadsGb));
+
+            document.getElementById('barMovies').style.width = ((moviesGb / totalGb) * 100).toFixed(1) + "%";
+            document.getElementById('barTorrents').style.width = ((torrentsGb / totalGb) * 100).toFixed(1) + "%";
+            document.getElementById('barUploads').style.width = ((uploadsGb / totalGb) * 100).toFixed(1) + "%";
+            document.getElementById('barOther').style.width = ((otherGb / totalGb) * 100).toFixed(1) + "%";
+
+            // Duplicates List
+            renderDupList(data.duplicates || [], data.temp_files || []);
+        }
+
+        function renderDupList(duplicates, tempFiles) {
+            const container = document.getElementById('dupListContainer');
+            const badge = document.getElementById('dupCountBadge');
+            const totalItems = duplicates.length + tempFiles.length;
+            badge.innerText = `${totalItems} detectados`;
+
+            if (totalItems === 0) {
+                container.innerHTML = `
+                    <div class="empty-box">
+                        <i class="fa-solid fa-circle-check" style="font-size: 36px; color: var(--success);"></i>
+                        <span style="color: var(--text-primary); font-weight: 600;">¡Almacenamiento limpio y optimizado!</span>
+                        <span style="color: var(--text-muted); font-size: 12px;">No se detectaron torrents duplicados ni archivos temporales.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = "";
+
+            // Temporales
+            tempFiles.forEach(tf => {
+                html += `
+                    <div class="clean-item">
+                        <div class="clean-item-info">
+                            <div class="clean-item-title"><i class="fa-solid fa-clock" style="color: var(--warning);"></i> ${escapeHtml(tf.name)}</div>
+                            <div class="clean-item-sub">
+                                <span><i class="fa-solid fa-hard-drive"></i> ${tf.size_formatted}</span>
+                                <span><i class="fa-solid fa-triangle-exclamation"></i> Archivo Temporal Incompleto</span>
+                            </div>
+                        </div>
+                        <button class="clean-btn-del" onclick="deleteSpecificPath('${escapeJs(tf.path)}')">
+                            <i class="fa-solid fa-trash"></i> Borrar
+                        </button>
+                    </div>
+                `;
+            });
+
+            // Duplicados de Torrents
+            duplicates.forEach(item => {
+                html += `
+                    <div class="clean-item">
+                        <div class="clean-item-info">
+                            <div class="clean-item-title"><i class="fa-solid fa-copy" style="color: var(--danger);"></i> ${escapeHtml(item.name)}</div>
+                            <div class="clean-item-sub">
+                                <span><i class="fa-solid fa-hard-drive"></i> ${item.size_formatted}</span>
+                                <span><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Ya convertida en MP4</span>
+                            </div>
+                        </div>
+                        <button class="clean-btn-del" onclick="deleteSpecificPath('${escapeJs(item.path)}')">
+                            <i class="fa-solid fa-trash"></i> Borrar
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function triggerCleanDuplicates() {
+            if (!confirm("¿Deseas eliminar automáticamente todos los torrents que ya tienen su copia convertida a MP4 y los temporales?")) return;
+
+            const btn = document.getElementById('btnCleanAll');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Limpiando...';
+            logMessage("Iniciando limpieza masiva de duplicados...", "warn");
+
+            try {
+                const res = await fetch('/api/cleaner/clean-duplicates', { method: 'POST' });
+                const json = await res.json();
+                if (json.success) {
+                    logMessage(`✅ Limpieza completada con éxito. Se liberaron ${json.freed_formatted || 'espacio'}.`, "success");
+                    if (json.deleted_items && json.deleted_items.length > 0) {
+                        json.deleted_items.forEach(i => logMessage(`Eliminado: ${i}`, "info"));
+                    }
+                } else {
+                    logMessage("Error en limpieza: " + json.error, "error");
+                }
+            } catch (e) {
+                logMessage("Fallo de conexión: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar Duplicados y Temporales';
+                fetchCleanerStatus();
+            }
+        }
+
+        async function deleteSpecificPath(path) {
+            if (!confirm(`¿Eliminar definitivamente este archivo?\n${path}`)) return;
+            logMessage(`Borrando: ${path}...`, "warn");
+
+            try {
+                const res = await fetch('/api/cleaner/delete-item', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    logMessage(`Eliminado con éxito: ${path}`, "success");
+                } else {
+                    logMessage(`Error al eliminar: ${json.error}`, "error");
+                }
+            } catch (e) {
+                logMessage(`Error de red: ${e.message}`, "error");
+            } finally {
+                fetchCleanerStatus();
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        }
+
+        // Carga inicial
+        fetchCleanerStatus();
+    </script>
+</body>
+</html>

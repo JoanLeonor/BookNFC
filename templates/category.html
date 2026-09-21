@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ category_title }} - BookNFC</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --surface-hover: #1e2532;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-gradient: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            
+            /* Theme color based on category */
+            {% if category_name == 'book' %}
+                --theme-color: #4facfe;
+                --theme-glow: rgba(79, 172, 254, 0.15);
+            {% elif category_name == 'manga' %}
+                --theme-color: #10b981;
+                --theme-glow: rgba(16, 185, 129, 0.15);
+            {% elif category_name == 'movie' %}
+                --theme-color: #ef4444;
+                --theme-glow: rgba(239, 68, 68, 0.15);
+            {% elif category_name == 'series' %}
+                --theme-color: #f59e0b;
+                --theme-glow: rgba(245, 158, 11, 0.15);
+            {% elif category_name == 'music' %}
+                --theme-color: #8b5cf6;
+                --theme-glow: rgba(139, 92, 246, 0.15);
+            {% elif category_name == 'anime' %}
+                --theme-color: #ec4899;
+                --theme-glow: rgba(236, 72, 153, 0.15);
+            {% else %}
+                --theme-color: #00f2fe;
+                --theme-glow: rgba(0, 242, 254, 0.15);
+            {% endif %}
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(21, 26, 35, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, var(--theme-glow) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* HEADER */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(21, 26, 35, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.95rem 1.5rem;
+        }
+
+        .header-container {
+            max-width: 88rem;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .logo i {
+            font-size: 1.6rem;
+            color: var(--theme-color);
+            filter: drop-shadow(0 0.15rem 0.5rem var(--theme-glow));
+        }
+
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 25rem;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.7rem 1rem 0.7rem 2.6rem;
+            border-radius: 0.65rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--theme-color);
+            background: rgba(11, 14, 20, 0.9);
+            box-shadow: 0 0 0.9rem var(--theme-glow);
+            outline: none;
+        }
+
+        .search-input:focus + i {
+            color: var(--theme-color);
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            max-width: 88rem;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            flex-grow: 1;
+        }
+
+        /* HEADER BAR (NAVIGATION) */
+        .navigation-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-info i {
+            font-size: 1.4em;
+            color: var(--theme-color);
+        }
+
+        .category-info h2 {
+            font-size: 1.5em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .category-info .count-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.78em;
+            font-weight: 700;
+        }
+
+        /* FILTER PANEL */
+        .filter-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.88em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:focus {
+            border-color: var(--theme-color);
+            outline: none;
+        }
+
+        /* GRID */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        /* CARD */
+        .card-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .card-item:hover {
+            transform: translateY(-6px);
+            border-color: var(--theme-color);
+            box-shadow: 0 10px 25px var(--theme-glow);
+        }
+
+        .cover-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            background: #10141c;
+        }
+
+        .cover-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card-item:hover .cover-wrapper img {
+            transform: scale(1.06);
+        }
+
+        .nfc-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.75em;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        .saga-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(11, 14, 20, 0.9);
+            border: 1px solid var(--theme-color);
+            color: var(--theme-color);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.76em;
+            font-weight: 800;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-details {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .card-meta {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        .tags-wrapper {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .category-tag {
+            font-size: 0.68em;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .card-actions .btn {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 0.8em;
+            justify-content: center;
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+        }
+
+        .btn-default {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .btn-default:hover {
+            border-color: var(--theme-color);
+            color: var(--theme-color);
+            background: var(--surface-hover);
+        }
+
+        .btn-theme {
+            background: var(--theme-color);
+            color: #0b0e14;
+            border: none;
+            box-shadow: 0 4px 10px var(--theme-glow);
+            font-weight: 700;
+        }
+
+        .btn-theme:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--theme-glow);
+        }
+
+        /* PAGINACIÓN FLUIDA */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2.5rem;
+            padding: 1rem 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .btn-page {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-page:hover:not(.disabled) {
+            border-color: var(--theme-color);
+            color: var(--theme-color);
+            background: var(--surface-hover);
+        }
+
+        .btn-page.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-numbers {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state i {
+            color: var(--text-muted);
+            opacity: 0.4;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            max-width: 400px;
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 25px;
+            text-align: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <h1 style="color: var(--text-main);">BookNFC</h1>
+            </a>
+
+            <!-- Buscador interno -->
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar en esta categoría...">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+
+            <a href="/admin" class="btn btn-default"><i class="fa-solid fa-user-gear"></i> Panel Admin</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Navigation bar -->
+        <div class="navigation-bar">
+            <div class="category-info">
+                {% if category_name == 'book' %}<i class="fa-solid fa-book"></i>
+                {% elif category_name == 'manga' %}<i class="fa-solid fa-book-open"></i>
+                {% elif category_name == 'movie' %}<i class="fa-solid fa-film"></i>
+                {% elif category_name == 'series' %}<i class="fa-solid fa-tv"></i>
+                {% elif category_name == 'anime' %}<i class="fa-solid fa-cat"></i>
+                {% elif category_name == 'music' %}<i class="fa-solid fa-music"></i>
+                {% endif %}
+                <h2>{{ category_title }}</h2>
+                <span class="count-badge" id="countBadge">{{ books|length }} obras</span>
+            </div>
+
+            <a href="/" class="btn btn-default"><i class="fa-solid fa-arrow-left"></i> Volver al Inicio</a>
+        </div>
+
+        <!-- Filter panel -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label for="genreFilter"><i class="fa-solid fa-tags"></i> Género/Categoría:</label>
+                <select id="genreFilter" class="filter-select">
+                    <option value="all">Todos los géneros</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="sortSelect"><i class="fa-solid fa-sort"></i> Ordenar por:</label>
+                <select id="sortSelect" class="filter-select">
+                    <option value="recent">Fecha: Más recientes primero</option>
+                    <option value="oldest">Fecha: Más antiguos primero</option>
+                    <option value="alpha-asc">Título: A-Z</option>
+                    <option value="alpha-desc">Título: Z-A</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <section class="cards-grid" id="cardsGrid">
+            {% if books %}
+                {% for book in books %}
+                <div class="card-item" 
+                     data-search-title="{{ book.title|lower }}" 
+                     data-search-author="{{ book.author|default('')|lower }}" 
+                     data-search-saga="{{ book.saga|default('')|lower }}"
+                     data-search-category="{{ book.category|default('')|lower }}"
+                     data-index="{{ loop.index0 }}"
+                     data-title="{{ book.title|lower }}">
+                    
+                    <a href="/book/{{ book.id }}">
+                        <div class="cover-wrapper">
+                            <img src="/static/covers/{{ book.cover }}" alt="Portada de {{ book.title }}" loading="lazy">
+                            <span class="nfc-badge">{{ book.nfc_key }}</span>
+                            {% if book.is_saga_group and book.saga_total_items > 1 %}
+                                <span class="saga-badge" title="{% if book.has_random_cover %}Rotación aleatoria activa{% else %}Saga con múltiples obras{% endif %}">
+                                    {% if book.has_random_cover %}<i class="fa-solid fa-dice"></i>{% else %}<i class="fa-solid fa-layer-group"></i>{% endif %}
+                                    {{ book.saga_total_items }} {% if book.type == 'manga' %}Tomos{% elif book.type in ['series', 'anime'] %}Caps{% elif book.type == 'music' %}Pistas{% elif book.type == 'book' %}Libros{% else %}Vol.{% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    <div class="card-details">
+                        <div class="card-info">
+                            <a href="/book/{{ book.id }}" style="text-decoration: none; color: inherit;">
+                                <h3 class="card-title" title="{% if book.saga %}{{ book.saga }}{% else %}{{ book.title }}{% endif %}">
+                                    {% if book.saga %}
+                                        {{ book.saga }}
+                                    {% else %}
+                                        {{ book.title }}
+                                    {% endif %}
+                                </h3>
+                            </a>
+                            <div class="card-meta">
+                                {% if book.author %}
+                                    <span class="meta-item"><i class="fa-solid fa-user"></i> {{ book.author }}</span>
+                                {% endif %}
+                                {% if book.saga %}
+                                    <span class="meta-item"><i class="fa-solid fa-folder-open"></i> {{ book.saga }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if book.category %}
+                                <div class="tags-wrapper">
+                                    {% for tag in book.category.split(',') %}
+                                        {% if tag.strip() %}
+                                            <span class="category-tag">{{ tag.strip() }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-actions">
+                            {% if book.type in ['movie', 'series', 'music', 'anime'] %}
+                                <a href="/player/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-play"></i> Reproducir</a>
+                            {% else %}
+                                <a href="/read/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-book-open"></i> Leer</a>
+                            {% endif %}
+                            <a href="/book/{{ book.id }}" class="btn btn-default" title="Ver Ficha / Detalles"><i class="fa-solid fa-circle-info"></i> Detalle</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState">
+                {% if category_name == 'book' %}<i class="fa-solid fa-book fa-4x"></i>
+                {% elif category_name == 'manga' %}<i class="fa-solid fa-book-open fa-4x"></i>
+                {% elif category_name == 'movie' %}<i class="fa-solid fa-film fa-4x"></i>
+                {% elif category_name == 'series' %}<i class="fa-solid fa-tv fa-4x"></i>
+                {% elif category_name == 'anime' %}<i class="fa-solid fa-cat fa-4x"></i>
+                {% elif category_name == 'music' %}<i class="fa-solid fa-music fa-4x"></i>
+                {% endif %}
+                <h3>No hay obras en esta categoría</h3>
+                <p>Aún no se han registrado obras bajo la categoría de {{ category_title|lower }}.</p>
+            </div>
+        </section>
+
+        <!-- PAGINACIÓN DE 20 EN 20 -->
+        {% if total_pages and total_pages > 1 %}
+        <div class="pagination-container">
+            {% if page > 1 %}
+                <a href="{{ url_for('category_view', category_name=category_name, page=page-1) }}" class="btn-page"><i class="fa-solid fa-chevron-left"></i> Anterior</a>
+            {% else %}
+                <span class="btn-page disabled"><i class="fa-solid fa-chevron-left"></i> Anterior</span>
+            {% endif %}
+
+            <div class="page-numbers">
+                Página <strong>{{ page }}</strong> de <strong>{{ total_pages }}</strong> (Total: {{ total_items }} contenidos)
+            </div>
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('category_view', category_name=category_name, page=page+1) }}" class="btn-page">Siguiente <i class="fa-solid fa-chevron-right"></i></a>
+            {% else %}
+                <span class="btn-page disabled">Siguiente <i class="fa-solid fa-chevron-right"></i></span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 BookNFC. Desarrollado para la lectura y el entretenimiento.</p>
+    </footer>
+
+    <script>
+        const cards = document.querySelectorAll('.card-item');
+        const cardsGrid = document.getElementById('cardsGrid');
+        const searchInput = document.getElementById('searchInput');
+        const genreFilter = document.getElementById('genreFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const emptyState = document.getElementById('emptyState');
+        const countBadge = document.getElementById('countBadge');
+
+        // Extraer todos los géneros/categorías únicos de las tarjetas
+        const allGenres = new Set();
+        cards.forEach(card => {
+            const genresStr = card.getAttribute('data-search-category');
+            if (genresStr) {
+                genresStr.split(',').forEach(g => {
+                    const tag = g.trim();
+                    if (tag) allGenres.add(tag);
+                });
+            }
+        });
+        
+        // Cargar los géneros en el filtro select
+        Array.from(allGenres).sort().forEach(genre => {
+            const option = document.createElement('option');
+            option.value = genre.toLowerCase();
+            option.innerText = genre.charAt(0).toUpperCase() + genre.slice(1);
+            genreFilter.appendChild(option);
+        });
+
+        // Función combinada de Filtrado y Ordenamiento
+        function filterAndSort() {
+            const query = searchInput.value.toLowerCase().trim();
+            const selectedGenre = genreFilter.value;
+            const sortVal = sortSelect.value;
+            
+            let visibleCards = [];
+
+            // 1. Filtrar
+            cards.forEach(card => {
+                const title = card.getAttribute('data-search-title');
+                const author = card.getAttribute('data-search-author');
+                const saga = card.getAttribute('data-search-saga');
+                const category = card.getAttribute('data-search-category');
+
+                const matchesQuery = (
+                    title.includes(query) ||
+                    author.includes(query) ||
+                    saga.includes(query) ||
+                    category.includes(query)
+                );
+
+                const matchesGenre = (selectedGenre === 'all' || category.includes(selectedGenre));
+
+                if (matchesQuery && matchesGenre) {
+                    card.style.display = 'flex';
+                    visibleCards.push(card);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // 2. Ordenar las tarjetas visibles
+            visibleCards.sort((a, b) => {
+                if (sortVal === 'recent') {
+                    return parseInt(b.getAttribute('data-index')) - parseInt(a.getAttribute('data-index'));
+                } else if (sortVal === 'oldest') {
+                    return parseInt(a.getAttribute('data-index')) - parseInt(b.getAttribute('data-index'));
+                } else if (sortVal === 'alpha-asc') {
+                    return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'));
+                } else if (sortVal === 'alpha-desc') {
+                    return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'));
+                }
+                return 0;
+            });
+
+            // Re-acoplar las tarjetas ordenadas en el DOM
+            visibleCards.forEach(card => {
+                cardsGrid.appendChild(card);
+            });
+
+            // Actualizar contador
+            countBadge.innerText = `${visibleCards.length} ${visibleCards.length === 1 ? 'obra' : 'obras'}`;
+
+            // Manejo de Empty State
+            if (visibleCards.length === 0) {
+                emptyState.style.display = 'flex';
+                cardsGrid.appendChild(emptyState);
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', filterAndSort);
+        genreFilter.addEventListener('change', filterAndSort);
+        sortSelect.addEventListener('change', filterAndSort);
+
+        // Ejecutar ordenamiento por defecto al cargar
+        filterAndSort();
+    </script>
+</body>
+
+</html>

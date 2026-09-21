@@ -8,7 +8,15 @@ __pycache__/
 # Archivos de configuración local y base de datos con contraseñas
 config.json
 books.json
+catalog.json
 notas.md
+reporte_*.txt
+*.log
+
+# Carpetas de desarrollo y temporales
+scratch/
+backups/
+.agents/
 
 # Archivos multimedia, documentos subidos y caché temporal
 static/uploads/*
@@ -25,3 +33,4 @@ static/cache/*
 .idea/
 .DS_Store
 Thumbs.db
+

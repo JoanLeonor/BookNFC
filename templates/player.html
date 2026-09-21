@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ media.saga if (media.saga and media_type in ['series', 'anime', 'music']) else media.title }} - VLC Media Player (TapBox)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --vlc-orange: #ff7800;
+            --vlc-orange-hover: #ff9233;
+            --vlc-orange-glow: rgba(255, 120, 0, 0.25);
+            --bg-body: #0d0e12;
+            --surface: #16181f;
+            --surface-hover: #202430;
+            --border: #282c3a;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER BAR ESTILO VLC */
+        .header-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+
+        .btn-back:hover {
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+            background: var(--vlc-orange-glow);
+        }
+
+        .vlc-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .vlc-cone-icon {
+            color: var(--vlc-orange);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px var(--vlc-orange-glow));
+        }
+
+        .header-title-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            overflow: hidden;
+        }
+
+        .header-title-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge-type {
+            align-self: flex-start;
+            background: var(--vlc-orange-glow);
+            color: var(--vlc-orange);
+            border: 1px solid rgba(255, 120, 0, 0.4);
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 0.15rem 0.65rem;
+            border-radius: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        /* CONTAINER MAIN */
+        .player-container {
+            flex-grow: 1;
+            padding: 1.25rem 1.5rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LAYOUT DE 2 COLUMNAS */
+        .main-layout {
+            display: flex;
+            gap: 1.5rem;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        .main-layout.single-column {
+            max-width: 75rem;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* COLUMNA DE VIDEO PRINCIPAL (70%) */
+        .video-column {
+            flex: 1 1 70%;
+            min-width: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-screen-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16 / 9;
+        }
+
+        .video-screen-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            outline: none;
+        }
+
+        /* BARRA DE CONTROLES PERSONALIZADA ESTILO VLC */
+        .vlc-custom-controls {
+            background: #111319;
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .vlc-timeline-box {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .vlc-progress-bar {
+            flex-grow: 1;
+            height: 0.4rem;
+            appearance: none;
+            background: #2a2e3d;
+            border-radius: 0.4rem;
+            outline: none;
+            cursor: pointer;
+            transition: height 0.15s ease;
+        }
+
+        .vlc-progress-bar:hover {
+            height: 0.6rem;
+        }
+
+        .vlc-progress-bar::-webkit-slider-thumb {
+            appearance: none;
+            width: 0.95rem;
+            height: 0.95rem;
+            border-radius: 50%;
+            background: var(--vlc-orange);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--vlc-orange);
+        }
+
+        .vlc-time-text {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            min-width: 6rem;
+            text-align: center;
+        }
+
+        .vlc-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .vlc-left-ctrls, .vlc-right-ctrls {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .vlc-btn-ctrl {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 2.3rem;
+            height: 2.3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .vlc-btn-ctrl:hover {
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+            background: var(--vlc-orange-glow);
+        }
+
+        .vlc-btn-ctrl.play-btn {
+            background: var(--vlc-orange);
+            color: #0d0e12;
+            border: none;
+            font-size: 1.05rem;
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 50%;
+        }
+
+        .vlc-btn-ctrl.play-btn:hover {
+            background: var(--vlc-orange-hover);
+            transform: scale(1.05);
+            box-shadow: 0 0 12px var(--vlc-orange-glow);
+        }
+
+        .vlc-speed-select {
+            background: #181b24;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 0.4rem;
+            padding: 0.35rem 0.5rem;
+            font-size: 0.8rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .vlc-speed-select:hover {
+            border-color: var(--vlc-orange);
+        }
+
+        .vlc-volume-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .vlc-volume-slider {
+            width: 5rem;
+            accent-color: var(--vlc-orange);
+            cursor: pointer;
+        }
+
+        /* BARRA DE INFORMACIÓN Y BOTONES ACCIÓN VLC */
+        .video-info-bar {
+            padding: 1.1rem 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            border-top: 1px solid var(--border);
+            background: rgba(11, 14, 20, 0.6);
+        }
+
+        .video-current-meta h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+            word-break: break-word;
+        }
+
+        .video-current-meta p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .video-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 0.6rem 1.1rem;
+            border-radius: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .btn-action:hover {
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+            background: var(--surface-hover);
+        }
+
+        /* BOTÓN PRINCIPAL ABRIR EN APP VLC */
+        .btn-vlc-launcher {
+            background: linear-gradient(135deg, #ff7800 0%, #ff9233 100%);
+            color: #0b0e14;
+            border: none;
+            font-weight: 800;
+            box-shadow: 0 0 15px var(--vlc-orange-glow);
+        }
+
+        .btn-vlc-launcher:hover {
+            background: linear-gradient(135deg, #ff881a 0%, #ffa34d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(255, 120, 0, 0.4);
+            color: #000;
+        }
+
+        /* SIDEBAR DE EPISODIOS */
+        .playlist-column {
+            width: clamp(18rem, 26vw, 24rem);
+            flex-shrink: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 7.5rem);
+            max-height: 53rem;
+        }
+
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .playlist-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--vlc-orange);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* SELECTOR DE SAGA / TEMPORADA */
+        .saga-selector-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .saga-selector-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .saga-selector-label i {
+            color: var(--vlc-orange);
+        }
+
+        .saga-selector-dropdown {
+            width: 100%;
+            background: #111319;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .saga-selector-dropdown:hover, .saga-selector-dropdown:focus {
+            border-color: var(--vlc-orange);
+            box-shadow: 0 0 10px var(--vlc-orange-glow);
+        }
+
+        .saga-selector-dropdown option {
+            background: #16181f;
+            color: var(--text-main);
+            padding: 0.4rem;
+        }
+
+        .episodes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 0.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .episodes-list::-webkit-scrollbar {
+            width: 0.35rem;
+        }
+
+        .episodes-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 0.6rem;
+        }
+
+        .episode-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0.9rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 0.75rem;
+        }
+
+        .episode-item:hover {
+            background: var(--surface-hover);
+            border-color: var(--vlc-orange);
+        }
+
+        .episode-item.active {
+            background: var(--vlc-orange-glow);
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+            font-weight: 700;
+        }
+
+        .episode-title {
+            font-size: 0.88rem;
+            word-break: break-word;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .episode-title i {
+            color: var(--vlc-orange);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .btn-download-mini {
+            padding: 0.3rem 0.65rem;
+            font-size: 0.75rem;
+            border-radius: 0.4rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .btn-download-mini:hover {
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+        }
+
+        /* REPRODUCTOR DE MÚSICA */
+        .audio-player-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 32rem;
+            margin: 1.25rem auto;
+            padding: 1.75rem;
+            box-shadow: 0 0.9rem 2.8rem rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .disc-container {
+            width: 10.5rem;
+            height: 10.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .vinyl-disc {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #333 0%, #111 70%, #000 100%);
+            border: 0.25rem solid #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.8);
+            animation: spin 15s linear infinite;
+            animation-play-state: paused;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .disc-center {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            border: 0.2rem solid #444;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .track-info {
+            margin-bottom: 1.1rem;
+        }
+
+        .track-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .track-artist {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 1.1rem;
+        }
+
+        .progress-slider {
+            width: 100%;
+            accent-color: var(--vlc-orange);
+            cursor: pointer;
+        }
+
+        .time-box {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-audio {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.05rem;
+            transition: all 0.2s;
+        }
+
+        .btn-audio:hover {
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange);
+        }
+
+        .btn-audio.play-pause {
+            width: 3.2rem;
+            height: 3.2rem;
+            background: var(--vlc-orange);
+            color: #0d0e12;
+            border: none;
+            font-size: 1.2rem;
+        }
+
+        .audio-playlist {
+            width: 100%;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            text-align: left;
+        }
+
+        .audio-playlist-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .vlc-banner-notice {
+            background: rgba(255, 120, 0, 0.08);
+            border: 1px solid rgba(255, 120, 0, 0.25);
+            border-radius: 0.6rem;
+            padding: 0.6rem 0.9rem;
+            margin-bottom: 0.8rem;
+            font-size: 0.8rem;
+            color: #ffaa55;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast-notify {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e2430;
+            border: 1px solid var(--vlc-orange);
+            color: var(--text-main);
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.6rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(1rem);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.88rem;
+        }
+
+        .toast-notify.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 64rem) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .playlist-column {
+                width: 100%;
+                height: 28rem;
+            }
+            .header-bar {
+                padding: 0.75rem 1rem;
+            }
+            .player-container {
+                padding: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header-bar">
+        <div class="title-area">
+            <a href="/book/{{ media.id }}" class="btn-back" title="Volver a la Ficha"><i class="fa-solid fa-arrow-left"></i></a>
+            <div class="vlc-brand">
+                <i class="fa-solid fa-cone vlc-cone-icon"></i>
+            </div>
+            <div class="header-title-info">
+                <h1>{{ media.saga if (media.saga and media_type in ['series', 'anime', 'music']) else media.title }}</h1>
+                <span class="badge-type" id="typeBadge"><i class="fa-solid fa-play"></i> {{ media_type }}</span>
+            </div>
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted); font-family: monospace;">{{ media.nfc_key }}</span>
+    </header>
+
+    <main class="player-container">
+
+        {% if media_type in ['movie', 'series', 'anime'] %}
+        <div class="main-layout {% if media_type == 'movie' %}single-column{% endif %}">
+            <!-- REPRODUCTOR DE VIDEO ESTILO VLC MEDIA PLAYER -->
+            <div class="video-column">
+                <div class="video-screen-container">
+                    <video id="mainVideo" preload="metadata">
+                        {% if media_type == 'movie' %}
+                            <source src="/stream/{{ file_val }}" type="video/mp4">
+                        {% endif %}
+                        Tu navegador no soporta la reproducción HTML5. Usa el botón "Abrir en App VLC".
+                    </video>
+                </div>
+
+                <!-- CONTROLES ESTILO VLC MEDIA PLAYER -->
+                <div class="vlc-custom-controls">
+                    <div class="vlc-timeline-box">
+                        <span class="vlc-time-text" id="vlcTimeCur">00:00</span>
+                        <input type="range" class="vlc-progress-bar" id="vlcProgressBar" value="0" min="0" max="100">
+                        <span class="vlc-time-text" id="vlcTimeDur">00:00</span>
+                    </div>
+
+                    <div class="vlc-controls-row">
+                        <div class="vlc-left-ctrls">
+                            <button class="vlc-btn-ctrl play-btn" id="vlcPlayBtn" onclick="vlcTogglePlay()" title="Reproducir / Pausa (Espacio)">
+                                <i class="fa-solid fa-play" id="vlcPlayIcon"></i>
+                            </button>
+                            <button class="vlc-btn-ctrl" onclick="vlcSeek(-10)" title="Retroceder 10s (Flecha Izquierda)"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="vlc-btn-ctrl" onclick="vlcSeek(10)" title="Adelantar 10s (Flecha Derecha)"><i class="fa-solid fa-rotate-right"></i></button>
+
+                            <div class="vlc-volume-box">
+                                <button class="vlc-btn-ctrl" id="vlcMuteBtn" onclick="vlcToggleMute()" title="Silenciar (M)">
+                                    <i class="fa-solid fa-volume-high" id="vlcVolIcon"></i>
+                                </button>
+                                <input type="range" class="vlc-volume-slider" id="vlcVolSlider" value="100" min="0" max="100">
+                            </div>
+                        </div>
+
+                        <div class="vlc-right-ctrls">
+                            <select class="vlc-speed-select" id="vlcSpeedSelect" onchange="vlcSetSpeed(this.value)" title="Velocidad de reproducción">
+                                <option value="0.5">0.5x</option>
+                                <option value="0.75">0.75x</option>
+                                <option value="1" selected>1.0x (Normal)</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="2">2.0x</option>
+                            </select>
+                            <button class="vlc-btn-ctrl" onclick="vlcTogglePip()" title="Picture-in-Picture / Pantalla Flotante (P)"><i class="fa-solid fa-clone"></i></button>
+                            <button class="vlc-btn-ctrl" onclick="vlcToggleFullscreen()" title="Pantalla Completa (F)"><i class="fa-solid fa-expand"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BARRA DE ACCIONES CON BOTÓN PRINCIPAL "ABRIR EN APP VLC" -->
+                <div class="video-info-bar">
+                    <div class="video-current-meta">
+                        <h2 id="currentVideoTitle">{{ media.title }}</h2>
+                        <p>{% if media.saga %}<i class="fa-solid fa-folder-open" style="color: var(--vlc-orange);"></i> Saga: {{ media.saga }}{% endif %}</p>
+                    </div>
+
+                    <div class="video-actions">
+                        <a id="vlcAppBtn" href="#" class="btn-action btn-vlc-launcher" title="Abrir transmisión directa en la app de VLC Player">
+                            <i class="fa-solid fa-cone"></i> Abrir en App VLC
+                        </a>
+                        <button class="btn-action" onclick="copyStreamUrl()" title="Copiar enlace para VLC u otros reproductores de red">
+                            <i class="fa-solid fa-copy"></i> Copiar Enlace Stream
+                        </button>
+                        <a id="downloadVideoBtn" href="#" download class="btn-action">
+                            <i class="fa-solid fa-download"></i> Descargar
+                        </a>
+                        <a href="/book/{{ media.id }}" class="btn-action">
+                            <i class="fa-solid fa-circle-info"></i> Ficha
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR DE EPISODIOS -->
+            {% if media_type in ['series', 'anime'] %}
+            <div class="playlist-column">
+                <div class="playlist-header">
+                    <h3><i class="fa-solid fa-list-ul"></i> Episodios</h3>
+                    <span id="episodeCountBadge" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;"></span>
+                </div>
+
+                {% if saga_books and saga_books|length > 1 %}
+                <div class="saga-selector-wrapper">
+                    <label class="saga-selector-label" for="sagaSelectDropdown"><i class="fa-solid fa-layer-group"></i> Saga / Temporada:</label>
+                    <select class="saga-selector-dropdown" id="sagaSelectDropdown" onchange="window.location.href='/player/' + this.value">
+                        {% for sb in saga_books %}
+                        <option value="{{ sb.id }}" {% if sb.id == media.id %}selected{% endif %}>
+                            {{ sb.title }} {% if sb.file is not string and sb.file is iterable %}({{ sb.file|length }} ep){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="episodes-list" id="episodesListContainer"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% elif media_type == 'music' %}
+        <!-- REPRODUCTOR DE MÚSICA ESTILO VLC -->
+        <div class="audio-player-card">
+            <div class="vlc-banner-notice">
+                <i class="fa-solid fa-cone"></i> Modo Audio VLC Media Player
+            </div>
+
+            <div class="disc-container">
+                <div class="vinyl-disc" id="vinylDisc">
+                    <div class="disc-center" style="background-image: url('/static/covers/{{ media.cover }}');"></div>
+                </div>
+            </div>
+
+            <div class="track-info">
+                <div class="track-title" id="trackTitle">Cargando...</div>
+                <div class="track-artist">{{ media.title }}</div>
+            </div>
+
+            <audio id="mainAudio" style="display:none;"></audio>
+
+            <div class="progress-container">
+                <input type="range" class="progress-slider" id="progressSlider" value="0" min="0" max="100">
+                <div class="time-box">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+            </div>
+
+            <div class="audio-controls">
+                <button class="btn-audio" onclick="prevTrack()" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="btn-audio play-pause" id="playPauseBtn" onclick="togglePlay()" title="Reproducir / Pausa"><i class="fa-solid fa-play" id="playIcon"></i></button>
+                <button class="btn-audio" onclick="nextTrack()" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+
+            <div class="video-actions" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+                <a id="vlcAudioBtn" href="#" class="btn-action btn-vlc-launcher" style="font-size: 0.8rem; padding: 0.45rem 0.85rem;">
+                    <i class="fa-solid fa-cone"></i> Abrir Pista en VLC
+                </a>
+            </div>
+
+            <div class="audio-playlist">
+                <div class="audio-playlist-title">Pistas de Audio</div>
+                <div id="audioListContainer"></div>
+            </div>
+        </div>
+        {% endif %}
+
+    </main>
+
+    <div class="toast-notify" id="toastNotify">
+        <i class="fa-solid fa-check-circle" style="color: var(--vlc-orange);"></i>
+        <span id="toastText">Enlace copiado al portapapeles</span>
+    </div>
+
+    <script>
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        const typeBadge = document.getElementById('typeBadge');
+        if (typeBadge) {
+            const types = { 'movie': 'Película', 'series': 'Serie', 'music': 'Música', 'anime': 'Anime' };
+            const cleanT = typeBadge.innerText.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            typeBadge.innerHTML = `<i class="fa-solid fa-cone"></i> ${types[cleanT] || typeBadge.innerText}`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotify');
+            const txt = document.getElementById('toastText');
+            if (toast && txt) {
+                txt.innerText = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            }
+        }
+
+        let currentStreamFullUrl = "";
+
+        function updateVlcLinks(streamUrlPath) {
+            // Construir URL completa de transmisión HTTP (ej: http://192.168.0.11:5000/download/...)
+            const fullHttpUrl = window.location.origin + streamUrlPath;
+            currentStreamFullUrl = fullHttpUrl;
+
+            // Formato de protocolo vlc:// (vlc://http://192.168.0.11:5000/...)
+            const vlcProtocolUrl = "vlc://" + fullHttpUrl;
+
+            const vlcAppBtn = document.getElementById('vlcAppBtn');
+            if (vlcAppBtn) {
+                vlcAppBtn.href = vlcProtocolUrl;
+            }
+            const vlcAudioBtn = document.getElementById('vlcAudioBtn');
+            if (vlcAudioBtn) {
+                vlcAudioBtn.href = vlcProtocolUrl;
+            }
+            const dlBtn = document.getElementById('downloadVideoBtn');
+            if (dlBtn) {
+                dlBtn.href = streamUrlPath;
+            }
+        }
+
+        function copyStreamUrl() {
+            if (!currentStreamFullUrl) return;
+            navigator.clipboard.writeText(currentStreamFullUrl).then(() => {
+                showToast("¡Enlace de transmisión copiado! Puedes pegarlo en VLC (Ctrl+N)");
+            }).catch(e => {
+                showToast("Enlace: " + currentStreamFullUrl);
+            });
+        }
+
+        // ================= CONTROLES AVANZADOS VLC WEB PLAYER =================
+        {% if media_type in ['movie', 'series', 'anime'] %}
+        const vVid = document.getElementById('mainVideo');
+        const vPlayBtn = document.getElementById('vlcPlayBtn');
+        const vPlayIcon = document.getElementById('vlcPlayIcon');
+        const vProgressBar = document.getElementById('vlcProgressBar');
+        const vTimeCur = document.getElementById('vlcTimeCur');
+        const vTimeDur = document.getElementById('vlcTimeDur');
+        const vVolSlider = document.getElementById('vlcVolSlider');
+        const vMuteBtn = document.getElementById('vlcMuteBtn');
+        const vVolIcon = document.getElementById('vlcVolIcon');
+
+        function vlcTogglePlay() {
+            if (!vVid) return;
+            if (vVid.paused) {
+                vVid.play().catch(e => console.log(e));
+            } else {
+                vVid.pause();
+            }
+        }
+
+        if (vVid) {
+            vVid.addEventListener('play', () => {
+                if (vPlayIcon) vPlayIcon.className = "fa-solid fa-pause";
+            });
+            vVid.addEventListener('pause', () => {
+                if (vPlayIcon) vPlayIcon.className = "fa-solid fa-play";
+            });
+            vVid.addEventListener('timeupdate', () => {
+                if (vVid.duration) {
+                    const pct = (vVid.currentTime / vVid.duration) * 100;
+                    if (vProgressBar) vProgressBar.value = pct;
+                    if (vTimeCur) vTimeCur.innerText = formatTime(vVid.currentTime);
+                    if (vTimeDur) vTimeDur.innerText = formatTime(vVid.duration);
+                }
+            });
+            vVid.addEventListener('click', vlcTogglePlay);
+        }
+
+        if (vProgressBar) {
+            vProgressBar.addEventListener('input', () => {
+                if (vVid && vVid.duration) {
+                    vVid.currentTime = (vProgressBar.value / 100) * vVid.duration;
+                }
+            });
+        }
+
+        function vlcSeek(seconds) {
+            if (vVid) {
+                vVid.currentTime = Math.max(0, Math.min(vVid.duration || 0, vVid.currentTime + seconds));
+            }
+        }
+
+        function vlcSetSpeed(val) {
+            if (vVid) {
+                vVid.playbackRate = parseFloat(val);
+                showToast(`Velocidad de reproducción: ${val}x`);
+            }
+        }
+
+        function vlcToggleMute() {
+            if (!vVid) return;
+            vVid.muted = !vVid.muted;
+            if (vVolIcon) {
+                vVolIcon.className = vVid.muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+            }
+        }
+
+        if (vVolSlider) {
+            vVolSlider.addEventListener('input', () => {
+                if (vVid) {
+                    vVid.volume = vVolSlider.value / 100;
+                    vVid.muted = (vVid.volume === 0);
+                    if (vVolIcon) {
+                        vVolIcon.className = (vVid.volume === 0) ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+                    }
+                }
+            });
+        }
+
+        function vlcToggleFullscreen() {
+            if (!vVid) return;
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (vVid.requestFullscreen) {
+                vVid.requestFullscreen();
+            } else if (vVid.webkitRequestFullscreen) {
+                vVid.webkitRequestFullscreen();
+            }
+        }
+
+        async function vlcTogglePip() {
+            if (!vVid) return;
+            try {
+                if (document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                } else if (document.pictureInPictureEnabled) {
+                    await vVid.requestPictureInPicture();
+                }
+            } catch (err) {
+                console.log("PiP Error:", err);
+            }
+        }
+
+        // ATAJOS DE TECLADO ESTILO VLC MEDIA PLAYER
+        document.addEventListener('keydown', (e) => {
+            if (['input', 'textarea', 'select'].includes(document.activeElement.tagName.toLowerCase())) return;
+            
+            if (e.code === 'Space' || e.key === 'k') {
+                e.preventDefault();
+                vlcTogglePlay();
+            } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                vlcToggleFullscreen();
+            } else if (e.key === 'm' || e.key === 'M') {
+                e.preventDefault();
+                vlcToggleMute();
+            } else if (e.key === 'ArrowLeft' || e.key === 'j') {
+                e.preventDefault();
+                vlcSeek(-10);
+            } else if (e.key === 'ArrowRight' || e.key === 'l') {
+                e.preventDefault();
+                vlcSeek(10);
+            } else if (e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                vlcTogglePip();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (vVid) vVid.volume = Math.min(1, vVid.volume + 0.1);
+                if (vVolSlider) vVolSlider.value = (vVid ? vVid.volume : 1) * 100;
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (vVid) vVid.volume = Math.max(0, vVid.volume - 0.1);
+                if (vVolSlider) vVolSlider.value = (vVid ? vVid.volume : 0) * 100;
+            }
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        {% endif %}
+
+        {% if media_type == 'movie' %}
+        updateVlcLinks("/download/{{ file_val }}");
+        {% endif %}
+
+        {% if media_type == 'series' or media_type == 'anime' %}
+        const titleElement = document.getElementById('currentVideoTitle');
+        const container = document.getElementById('episodesListContainer');
+        const countBadge = document.getElementById('episodeCountBadge');
+
+        let episodesPlaylist = [];
+        let currentEpIndex = 0;
+
+        {% if file_val is iterable and file_val is not string and file_val|length > 0 %}
+            // CASO 1: La saga actual tiene múltiples episodios en su lista de archivos
+            const rawFiles = {{ file_val | tojson }};
+            let filesArr = Array.isArray(rawFiles) ? rawFiles : [rawFiles];
+            
+            // Ordenamiento natural (1, 2, 10...)
+            filesArr.sort((a, b) => {
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            filesArr.forEach((fPath, idx) => {
+                const fname = fPath.split(/[\\/]/).pop();
+                let cleanName = fname.substring(0, fname.lastIndexOf('.')) || fname;
+                cleanName = cleanName.replace(/_/g, ' ').trim();
+                
+                episodesPlaylist.push({
+                    id: "{{ media.id }}",
+                    index: idx,
+                    title: cleanName,
+                    file: fPath,
+                    url: `/media_file/{{ media.id }}/${encodeURIComponent(fPath)}`,
+                    downloadUrl: `/media_file/{{ media.id }}/${encodeURIComponent(fPath)}`
+                });
+            });
+        {% elif saga_books and saga_books|length > 0 %}
+            // CASO 2: Obras donde cada episodio fue registrado como un registro individual en la saga
+            {% for sb in saga_books %}
+                {% set f_item = sb.file[0] if (sb.file is not string and sb.file is iterable and sb.file|length > 0) else (sb.file|default('')) %}
+                episodesPlaylist.push({
+                    id: "{{ sb.id }}",
+                    index: {{ loop.index0 }},
+                    title: "{{ sb.title }}",
+                    file: "{{ f_item }}",
+                    url: "{% if sb.file is not string and sb.file is iterable %}/media_file/{{ sb.id }}/{{ f_item }}{% else %}/stream/{{ f_item }}{% endif %}",
+                    downloadUrl: "{% if sb.file is not string and sb.file is iterable %}/media_file/{{ sb.id }}/{{ f_item }}{% else %}/download/{{ f_item }}{% endif %}"
+                });
+            {% endfor %}
+        {% else %}
+            // CASO 3: Solo un archivo único
+            const singleFile = {{ (file_val|default('')) | tojson }};
+            const fname = (singleFile || "").split(/[\\/]/).pop();
+            let cleanName = fname.substring(0, fname.lastIndexOf('.')) || fname;
+            cleanName = cleanName.replace(/_/g, ' ').trim();
+            episodesPlaylist.push({
+                id: "{{ media.id }}",
+                index: 0,
+                title: cleanName || "{{ media.title }}",
+                file: singleFile,
+                url: `/stream/${encodeURIComponent(singleFile)}`,
+                downloadUrl: `/download/${encodeURIComponent(singleFile)}`
+            });
+        {% endif %}
+
+        if (countBadge) {
+            countBadge.innerText = `${episodesPlaylist.length} ep`;
+        }
+
+        function playEpisode(index) {
+            if (index < 0 || index >= episodesPlaylist.length) return;
+            currentEpIndex = index;
+            const ep = episodesPlaylist[index];
+            
+            if (vVid) {
+                vVid.src = ep.url;
+                vVid.load();
+                vVid.play().catch(e => console.log("Reproducción automática:", e));
+            }
+
+            if (titleElement) {
+                titleElement.innerText = ep.title;
+            }
+
+            updateVlcLinks(ep.downloadUrl || ep.url);
+
+            if (container) {
+                const items = container.querySelectorAll('.episode-item');
+                items.forEach((item, i) => {
+                    if (i === index) {
+                        item.classList.add('active');
+                        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        // Auto-avanzar al siguiente episodio al terminar
+        if (vVid) {
+            vVid.addEventListener('ended', () => {
+                if (currentEpIndex + 1 < episodesPlaylist.length) {
+                    playEpisode(currentEpIndex + 1);
+                    showToast("Reproduciendo siguiente episodio...");
+                }
+            });
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileParam = parseInt(urlParams.get('file'));
+        let initialIdx = 0;
+        if (!isNaN(fileParam) && fileParam >= 0 && fileParam < episodesPlaylist.length) {
+            initialIdx = fileParam;
+        } else if (episodesPlaylist.length > 0) {
+            const foundIdx = episodesPlaylist.findIndex(e => e.id === "{{ media.id }}");
+            if (foundIdx !== -1) initialIdx = foundIdx;
+        }
+
+        if (container) {
+            container.innerHTML = '';
+            episodesPlaylist.forEach((ep, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `episode-item ${idx === initialIdx ? 'active' : ''}`;
+                itemDiv.onclick = () => playEpisode(idx);
+                itemDiv.innerHTML = `
+                    <div class="episode-title">
+                        <i class="fa-solid fa-play" style="font-size: 0.72rem; color: var(--vlc-orange); opacity: 0.85;"></i>
+                        <span title="${ep.title}">${ep.title}</span>
+                    </div>
+                    <a href="${ep.downloadUrl || ep.url}" download class="btn-download-mini" onclick="event.stopPropagation();" title="Descargar">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        playEpisode(initialIdx);
+        {% endif %}
+
+        // LÓGICA MÚSICA EN VLC
+        {% if media_type == 'music' %}
+        let playlist = [];
+        {% if file_val is iterable and file_val is not string and file_val|length > 0 %}
+            {% for track in file_val %}
+                playlist.push({
+                    title: "{{ track.split('/')[-1] | replace('.opus','') | replace('.mp3','') | replace('.flac','') | replace('.ogg','') | replace('.wav','') | replace('.m4a','') | replace('.aac','') | replace('_',' ') }}",
+                    url: "/media_file/{{ media.id }}/{{ track }}"
+                });
+            {% endfor %}
+        {% elif saga_books and saga_books|length > 0 %}
+            {% for sb in saga_books %}
+                {% set f_item = sb.file[0] if (sb.file is not string and sb.file is iterable and sb.file|length > 0) else sb.file %}
+                playlist.push({
+                    title: "{{ sb.title }}",
+                    url: "{% if sb.file is not string and sb.file is iterable %}/media_file/{{ sb.id }}/{{ f_item }}{% else %}/download/{{ f_item }}{% endif %}"
+                });
+            {% endfor %}
+        {% else %}
+            playlist.push({
+                title: "{{ file_val }}",
+                url: "/download/{{ file_val }}"
+            });
+        {% endif %}
+
+        let currentTrackIdx = 0;
+        const audio = document.getElementById('mainAudio');
+        const slider = document.getElementById('progressSlider');
+        const playIcon = document.getElementById('playIcon');
+        const trackTitle = document.getElementById('trackTitle');
+        const vinylDisc = document.getElementById('vinylDisc');
+
+        function loadTrack(index) {
+            if (index < 0 || index >= playlist.length) return;
+            currentTrackIdx = index;
+            const item = playlist[index];
+            audio.src = item.url;
+            trackTitle.innerText = item.title;
+            updateVlcLinks(item.url);
+
+            const items = document.querySelectorAll('#audioListContainer .playlist-item');
+            items.forEach((elem, i) => {
+                if (i === index) elem.classList.add('active');
+                else elem.classList.remove('active');
+            });
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.className = "fa-solid fa-pause";
+                if (vinylDisc) vinylDisc.style.animationPlayState = "running";
+            } else {
+                audio.pause();
+                playIcon.className = "fa-solid fa-play";
+                if (vinylDisc) vinylDisc.style.animationPlayState = "paused";
+            }
+        }
+
+        function prevTrack() {
+            let nextIdx = currentTrackIdx - 1;
+            if (nextIdx < 0) nextIdx = playlist.length - 1;
+            loadTrack(nextIdx);
+            audio.play();
+        }
+
+        function nextTrack() {
+            let nextIdx = currentTrackIdx + 1;
+            if (nextIdx >= playlist.length) nextIdx = 0;
+            loadTrack(nextIdx);
+            audio.play();
+        }
+
+        function selectTrack(idx, element) {
+            loadTrack(idx);
+            audio.play();
+        }
+
+        if (audio) {
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration && slider) {
+                    const percent = (audio.currentTime / audio.duration) * 100;
+                    slider.value = percent;
+                    document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                    document.getElementById('totalTime').innerText = formatTime(audio.duration);
+                }
+            });
+
+            if (slider) {
+                slider.addEventListener('input', () => {
+                    if (audio.duration) {
+                        audio.currentTime = (slider.value / 100) * audio.duration;
+                    }
+                });
+            }
+
+            audio.addEventListener('ended', nextTrack);
+        }
+
+        const audioContainer = document.getElementById('audioListContainer');
+        if (audioContainer && playlist.length > 0) {
+            playlist.forEach((track, idx) => {
+                const div = document.createElement('div');
+                div.className = `episode-item ${idx === 0 ? 'active' : ''}`;
+                div.onclick = () => selectTrack(idx, div);
+                div.innerHTML = `
+                    <div class="episode-title">
+                        <i class="fa-solid fa-music" style="color: var(--vlc-orange);"></i>
+                        <span>${track.title}</span>
+                    </div>
+                    <a href="${track.url}" download class="btn-download-mini" onclick="event.stopPropagation();" title="Descargar">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                `;
+                audioContainer.appendChild(div);
+            });
+        }
+
+        loadTrack(0);
+        {% endif %}
+    </script>
+</body>
+
+</html>

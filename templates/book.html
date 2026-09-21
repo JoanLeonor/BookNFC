@@ -6,15 +6,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ book.title }} - BookNFC</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-body: #0b0e14;
             --surface: #151a23;
+            --surface-hover: #1e2532;
             --border: #263040;
             --accent-cyan: #00f2fe;
             --accent-blue: #4facfe;
+            --accent-gradient: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
+            
+            /* Theme color based on media type */
+            {% if book.type == 'book' %}
+                --theme-color: #4facfe;
+                --theme-glow: rgba(79, 172, 254, 0.15);
+            {% elif book.type == 'manga' %}
+                --theme-color: #10b981;
+                --theme-glow: rgba(16, 185, 129, 0.15);
+            {% elif book.type == 'movie' %}
+                --theme-color: #ef4444;
+                --theme-glow: rgba(239, 68, 68, 0.15);
+            {% elif book.type == 'series' %}
+                --theme-color: #f59e0b;
+                --theme-glow: rgba(245, 158, 11, 0.15);
+            {% elif book.type == 'music' %}
+                --theme-color: #8b5cf6;
+                --theme-glow: rgba(139, 92, 246, 0.15);
+            {% elif book.type == 'anime' %}
+                --theme-color: #ec4899;
+                --theme-glow: rgba(236, 72, 153, 0.15);
+            {% else %}
+                --theme-color: #00f2fe;
+                --theme-glow: rgba(0, 242, 254, 0.15);
+            {% endif %}
         }
 
         * {
@@ -24,159 +51,1005 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(21, 26, 35, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, var(--theme-glow) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* HEADER */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(21, 26, 35, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.95rem 1.5rem;
+        }
+
+        .header-container {
+            max-width: 75rem;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 20px;
         }
 
-        .card-container {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 480px;
-            width: 100%;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        .logo {
             display: flex;
-            flex-direction: column;
-        }
-
-        .cover-header {
-            position: relative;
-            width: 100%;
-            height: 320px;
-            background-color: #05070a;
-            overflow: hidden;
-        }
-
-        .cover-header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .nfc-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(11, 14, 20, 0.85);
-            color: var(--accent-cyan);
-            border: 1px solid rgba(0, 242, 254, 0.3);
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.85em;
-            font-weight: 700;
-            backdrop-filter: blur(4px);
-        }
-
-        .card-content {
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .title {
-            font-size: 1.5em;
-            font-weight: 700;
-            line-height: 1.2;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
             color: var(--text-main);
         }
 
-        .synopsis {
-            font-size: 0.95em;
-            color: var(--text-muted);
-            line-height: 1.6;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--accent-cyan);
+        .logo i {
+            font-size: 1.6rem;
+            color: var(--theme-color);
+            filter: drop-shadow(0 0.15rem 0.5rem var(--theme-glow));
         }
 
-        .actions {
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03rem;
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            max-width: 75rem;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+            flex-grow: 1;
+        }
+
+        /* NAVIGATION BAR */
+        .navigation-bar {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.8rem;
         }
 
+        /* ACTIONS & BUTTONS */
         .btn {
-            background: var(--bg-body);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 0.7rem 1.25rem;
+            border-radius: 0.65rem;
+            font-weight: 600;
+            font-size: 0.9rem;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 0.95em;
-            transition: all 0.2s;
+            gap: 0.6rem;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
         }
 
-        .btn:hover {
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
+        .btn-default {
+            background: var(--surface);
+            color: var(--text-main);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-            color: #000;
+        .btn-default:hover {
+            border-color: var(--theme-color);
+            color: var(--theme-color);
+            background: var(--surface-hover);
+        }
+
+        .btn-theme {
+            background: var(--theme-color);
+            color: #0b0e14;
             border: none;
+            box-shadow: 0 4px 12px var(--theme-glow);
+            font-weight: 700;
         }
 
-        .btn-primary:hover {
+        .btn-theme:hover {
             opacity: 0.9;
-            color: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 18px var(--theme-glow);
         }
 
-        .footer-note {
-            text-align: center;
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            color: #0b0e14;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* DETAILS LAYOUT */
+        .details-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+            align-items: start;
+        }
+
+        @media (max-width: 800px) {
+            .details-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+
+        /* LEFT COLUMN: COVER */
+        .cover-side {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #10141c;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 40px var(--theme-glow);
+            transition: transform 0.3s ease;
+        }
+
+        .cover-side:hover {
+            transform: scale(1.02);
+        }
+
+        .cover-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cover-side .nfc-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(11, 14, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: monospace;
             font-size: 0.8em;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        .cover-side .type-badge {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(11, 14, 20, 0.85);
+            border: 1px solid var(--theme-color);
+            color: var(--theme-color);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.78em;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* RIGHT COLUMN: INFORMATION */
+        .info-side {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .book-title-header h2 {
+            font-size: 2.2em;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.8px;
+            margin-bottom: 8px;
+        }
+
+        .metadata-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px 25px;
+            font-size: 0.9em;
             color: var(--text-muted);
-            margin-top: 5px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .meta-item i {
+            color: var(--theme-color);
+        }
+
+        .tags-wrapper {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .category-tag {
+            font-size: 0.72em;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .synopsis-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--theme-color);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            color: var(--text-main);
+            font-size: 0.95em;
+        }
+
+        .actions-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        /* MANAGEMENT CONTAINER */
+        .management-box {
+            background: rgba(239, 68, 68, 0.03);
+            border: 1px dashed rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .management-box .section-title {
+            color: #ef4444;
+            margin-bottom: 12px;
+        }
+
+        /* RELATED CONTENT */
+        .related-section {
+            margin-top: 50px;
+            border-top: 1px solid var(--border);
+            padding-top: 40px;
+        }
+
+        .related-header {
+            font-size: 1.15em;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .related-header i {
+            color: var(--theme-color);
+        }
+
+        .related-row {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .related-row::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .related-row::-webkit-scrollbar-thumb {
+            background-color: var(--border);
+            border-radius: 10px;
+        }
+
+        .related-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            width: 170px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.25s ease;
+        }
+
+        .related-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--theme-color);
+            box-shadow: 0 6px 15px var(--theme-glow);
+        }
+
+        .related-cover {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            background: #10141c;
+        }
+
+        .related-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .related-card:hover .related-cover img {
+            transform: scale(1.05);
+        }
+
+        .related-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .related-title {
+            font-size: 0.85em;
+            font-weight: 700;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .related-meta {
+            font-size: 0.72em;
+            color: var(--text-muted);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        /* MODAL */
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-title {
+            font-size: 1.25em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.82em;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9em;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--theme-color);
+            outline: none;
+        }
+
+        .form-group input[type="file"] {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        /* PROGRESS MODAL FOR UPLOADS */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-body);
+            border-radius: 10px;
+            margin: 20px 0 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-gradient);
+            transition: width 0.25s ease;
+        }
+
+        .progress-status {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .saga-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px dashed var(--border);
+            font-size: 0.95em;
+            gap: 15px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .saga-item-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .saga-item-current {
+            background: rgba(0, 242, 254, 0.08) !important;
+            border: 1px solid rgba(0, 242, 254, 0.3);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card-container">
-        <div class="cover-header">
-            <img src="/static/covers/{{ book.cover }}" alt="{{ book.title }}">
-            <span class="nfc-badge"><i class="fa-solid fa-nfc-symbol"></i> {{ book.nfc_key }}</span>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <h1>BookNFC</h1>
+            </a>
+            
+            <a href="/admin" class="btn btn-default"><i class="fa-solid fa-user-gear"></i> Panel Admin</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main>
+        <!-- Navigation bar -->
+        <div class="navigation-bar">
+            <a href="/category/{{ book.type|default('book') }}" class="btn btn-default">
+                <i class="fa-solid fa-arrow-left"></i> Volver a {{ book.type|replace('book','Libros')|replace('manga','Mangas')|replace('movie','Películas')|replace('series','Series')|replace('music','Música')|replace('anime','Animes') }}
+            </a>
         </div>
 
-        <div class="card-content">
-            <h1 class="title">{{ book.title }}</h1>
-
-            <div class="synopsis">
-                {{ book.synopsis }}
+        <!-- Details layout -->
+        <div class="details-layout">
+            <!-- Left Side Cover -->
+            <div class="cover-side">
+                <img src="/static/covers/{{ book.cover }}" alt="Portada de {{ book.title }}">
+                <span class="nfc-badge"><i class="fa-solid fa-id-card"></i> {{ book.nfc_key }}</span>
+                
+                <!-- Badge de Tipo -->
+                <span class="type-badge">
+                    {% if book.type == 'movie' %}<i class="fa-solid fa-film"></i> Película
+                    {% elif book.type == 'series' %}<i class="fa-solid fa-tv"></i> Serie
+                    {% elif book.type == 'music' %}<i class="fa-solid fa-music"></i> Música
+                    {% elif book.type == 'anime' %}<i class="fa-solid fa-cat"></i> Anime
+                    {% elif book.type == 'manga' %}<i class="fa-solid fa-book-open"></i> Manga
+                    {% else %}<i class="fa-solid fa-book"></i> Libro
+                    {% endif %}
+                </span>
             </div>
 
-            <div class="actions">
-                <a href="/read/{{ book.id }}" class="btn btn-primary">
-                    <i class="fa-solid fa-book-open"></i> Abrir Lector Web
+            <!-- Right Side Information -->
+            <div class="info-side">
+                <div class="book-title-header">
+                    <h2>{{ book.title }}</h2>
+                    
+                    <div class="metadata-row">
+                        {% if book.author %}
+                            <span class="meta-item"><i class="fa-solid fa-user"></i> {{ book.author }}</span>
+                        {% endif %}
+                        
+                        {% if book.saga %}
+                            <span class="meta-item"><i class="fa-solid fa-folder-open"></i> {{ book.saga }}</span>
+                        {% endif %}
+                        
+                        {% if book.category %}
+                            <div class="tags-wrapper">
+                                {% for tag in book.category.split(',') %}
+                                    {% if tag.strip() %}
+                                        <span class="category-tag">{{ tag.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Synopsis -->
+                <div>
+                    <div class="section-title">Sinopsis</div>
+                    <div class="synopsis-box">
+                        {{ book.synopsis|default('No hay descripción disponible para esta obra.') }}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div>
+                    <div class="section-title">Acciones disponibles</div>
+                    <div class="actions-box">
+                        {% if book.type == 'movie' %}
+                            <a href="/player/{{ book.id }}" class="btn btn-theme">
+                                <i class="fa-solid fa-play"></i> Reproducir ahora
+                            </a>
+                        {% elif book.type in ['book', 'manga'] %}
+                            <a href="/read/{{ book.id }}" class="btn btn-theme">
+                                <i class="fa-solid fa-book-open"></i> Comenzar a leer
+                            </a>
+                        {% endif %}
+
+                        {% if book.file is string %}
+                            <a href="/download/{{ book.file }}" class="btn btn-default" download>
+                                <i class="fa-solid fa-download"></i> Descargar archivo
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Episodios / Capítulos / Tomos de la Saga -->
+                {% if (book.type in ['series', 'anime', 'music'] and (book.file is not string or (saga_books and saga_books|length > 1))) or (book.type in ['manga', 'book'] and saga_books and saga_books|length > 1) %}
+                <div style="margin-top: 25px;">
+                    <div class="section-title">
+                        {% if book.type == 'music' %}
+                            <i class="fa-solid fa-music"></i> Pistas del Álbum
+                        {% elif book.type in ['manga', 'book'] %}
+                            <i class="fa-solid fa-layer-group"></i> Tomos / Volúmenes de la Colección ({{ saga_books|length }})
+                        {% else %}
+                            <i class="fa-solid fa-list-ol"></i> Episodios / Capítulos ({{ saga_books|length if saga_books else (book.file|length if book.file is iterable else 1) }})
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border); padding: 15px; border-radius: 12px; max-height: 420px; overflow-y: auto;">
+                        {% if book.file is not string and book.file is iterable and book.type in ['series', 'anime', 'music'] %}
+                            <!-- Caso 1: Obra de múltiples archivos (Carga desde Carpeta) -->
+                            {% for f in book.file %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px dashed var(--border); font-size: 0.95em; gap: 15px;">
+                                <span style="font-weight: 600; word-break: break-word;" title="{{ f.split('/')[-1] }}">
+                                    <i class="fa-solid fa-circle-play" style="color: var(--theme-color); margin-right: 8px;"></i>
+                                    {{ f.split('/')[-1]|replace('.mp4','')|replace('.mkv','')|replace('.opus','')|replace('.mp3','')|replace('.flac','')|replace('.ogg','')|replace('.wav','')|replace('.m4a','')|replace('_',' ') }}
+                                </span>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="/player/{{ book.id }}?file={{ loop.index0 }}" class="btn btn-theme" style="padding: 6px 12px; font-size: 0.78em;"><i class="fa-solid fa-play"></i> Reproducir</a>
+                                    <a href="/media_file/{{ book.id }}/{{ f.split('/')[-1] }}" class="btn btn-default" style="padding: 6px 12px; font-size: 0.78em;" download><i class="fa-solid fa-download"></i> Descargar</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% elif saga_books %}
+                            <!-- Caso 2: Múltiples tomos / capítulos agrupados bajo la misma saga ordenados -->
+                            {% for item in saga_books %}
+                            <div class="saga-item-row {% if item.id == book.id %}saga-item-current{% endif %}">
+                                <span style="font-weight: 600; word-break: break-word;" title="{{ item.title }}">
+                                    <i class="fa-solid {% if item.type in ['book', 'manga'] %}fa-book-open{% else %}fa-circle-play{% endif %}" style="color: var(--theme-color); margin-right: 8px;"></i>
+                                    {{ item.title }} {% if item.id == book.id %}<span style="color: var(--accent-cyan); font-size: 0.8em; font-weight: bold; margin-left: 6px;">(Actual)</span>{% endif %}
+                                </span>
+                                <div style="display: flex; gap: 8px;">
+                                    {% if item.type in ['book', 'manga'] %}
+                                        <a href="/read/{{ item.id }}" class="btn btn-theme" style="padding: 6px 12px; font-size: 0.78em;"><i class="fa-solid fa-book-open"></i> Leer</a>
+                                    {% else %}
+                                        <a href="/player/{{ item.id }}" class="btn btn-theme" style="padding: 6px 12px; font-size: 0.78em;"><i class="fa-solid fa-play"></i> Reproducir</a>
+                                    {% endif %}
+                                    {% if item.id != book.id %}
+                                    <a href="/book/{{ item.id }}" class="btn btn-default" style="padding: 6px 12px; font-size: 0.78em;"><i class="fa-solid fa-circle-info"></i> Detalle</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div style="text-align: center; color: var(--text-muted); font-size: 0.9em; padding: 10px 0;">No se encontraron capítulos o tomos adicionales.</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Gestión Administrativa (Solo si está logueado) -->
+                {% if session.get('logged_in') %}
+                <div class="management-box">
+                    <div class="section-title"><i class="fa-solid fa-shield-halved"></i> Gestión Administrativa</div>
+                    <div class="actions-box">
+                        <button type="button" class="btn btn-default" onclick="openEditModal()">
+                            <i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan);"></i> Modificar Información
+                        </button>
+                        {% if book.type in ['movie', 'series', 'anime'] %}
+                        <button type="button" class="btn btn-default" style="color: var(--warning); border-color: rgba(255, 183, 3, 0.4);" onclick="syncBookMetadata('{{ book.id }}')">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Sincronizar con Radarr / Sonarr
+                        </button>
+                        {% endif %}
+                        <a href="/admin/delete/{{ book.id }}" class="btn btn-danger" 
+                           onclick="return confirm('¿Estás seguro de que deseas eliminar esta obra del servidor de manera permanente?');">
+                            <i class="fa-solid fa-trash"></i> Eliminar Obra
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RELACIONADOS: AUTOR -->
+        {% if related_author %}
+        <section class="related-section">
+            <div class="related-header">
+                <i class="fa-solid fa-user"></i>
+                <h2>Más de {{ book.author }}</h2>
+            </div>
+            
+            <div class="related-row">
+                {% for item in related_author %}
+                <a href="/book/{{ item.id }}" class="related-card">
+                    <div class="related-cover">
+                        <img src="/static/covers/{{ item.cover }}" alt="Portada de {{ item.title }}" loading="lazy">
+                    </div>
+                    <div class="related-info">
+                        <div class="related-title" title="{{ item.title }}">{{ item.title }}</div>
+                        {% if item.saga %}
+                            <div class="related-meta" title="{{ item.saga }}">{{ item.saga }}</div>
+                        {% endif %}
+                    </div>
                 </a>
-                <a href="/download/{{ book.file }}" class="btn" download>
-                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- RELACIONADOS: SAGA -->
+        {% if related_saga %}
+        <section class="related-section">
+            <div class="related-header">
+                <i class="fa-solid fa-folder-open"></i>
+                <h2>De la saga / colección: {{ book.saga }}</h2>
+            </div>
+            
+            <div class="related-row">
+                {% for item in related_saga %}
+                <a href="/book/{{ item.id }}" class="related-card">
+                    <div class="related-cover">
+                        <img src="/static/covers/{{ item.cover }}" alt="Portada de {{ item.title }}" loading="lazy">
+                    </div>
+                    <div class="related-info">
+                        <div class="related-title" title="{{ item.title }}">{{ item.title }}</div>
+                        {% if item.author %}
+                            <div class="related-meta" title="{{ item.author }}">{{ item.author }}</div>
+                        {% endif %}
+                    </div>
                 </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- MODAL DE EDICIÓN (SOLO SI ESTÁ LOGUEADO) -->
+    {% if session.get('logged_in') %}
+    <div class="progress-modal" id="editModal" style="display: none;">
+        <div class="progress-box">
+            <div class="modal-title">
+                <span><i class="fa-solid fa-pen-to-square"></i> Modificar Obra</span>
+                <button type="button" class="btn" onclick="closeEditModal()" style="padding: 5px 10px; font-size: 0.8em;"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="footer-note">
-                <i class="fa-solid fa-microchip"></i> Servido localmente desde Raspberry Pi
+            <form id="editForm" action="/admin/edit/{{ book.id }}" method="POST" enctype="multipart/form-data">
+                <div style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
+                    
+                    <div class="form-group">
+                        <label>Título *</label>
+                        <input type="text" name="title" value="{{ book.title }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tipo de Contenido *</label>
+                        <select name="type" id="editType" required>
+                            <option value="book" {% if book.type == 'book' %}selected{% endif %}>Libro</option>
+                            <option value="manga" {% if book.type == 'manga' %}selected{% endif %}>Manga</option>
+                            <option value="movie" {% if book.type == 'movie' %}selected{% endif %}>Película</option>
+                            <option value="series" {% if book.type == 'series' %}selected{% endif %}>Serie</option>
+                            <option value="music" {% if book.type == 'music' %}selected{% endif %}>Música</option>
+                            <option value="anime" {% if book.type == 'anime' %}selected{% endif %}>Anime</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Autor / Creador</label>
+                        <input type="text" name="author" value="{{ book.author|default('') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Saga / Grupo / Álbum</label>
+                        <input type="text" name="saga" value="{{ book.saga|default('') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categoría / Género</label>
+                        <input type="text" name="category" value="{{ book.category|default('') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Llave NFC *</label>
+                        <input type="text" name="nfc_key" value="{{ book.nfc_key }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cambiar Portada (Dejar vacío para conservar)</label>
+                        <input type="file" name="cover" accept="image/*">
+                    </div>
+
+                    <div class="form-group">
+                        <label id="editFileInputLabel">Reemplazar Archivo(s) (Dejar vacío para conservar)</label>
+                        <input type="file" name="file" id="editFileInput">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Sinopsis</label>
+                        <textarea name="synopsis" rows="3">{{ book.synopsis|default('') }}</textarea>
+                    </div>
+
+                    <!-- OPCIONES DE GALERÍA Y SAGA -->
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-top: 15px;">
+                        <div style="font-weight: 700; font-size: 0.92em; margin-bottom: 12px; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-sliders"></i> Opciones de Visualización en Galería
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.88em;">
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="show_in_gallery" value="1" style="margin-top: 3px; accent-color: var(--accent-cyan);" {% if book.show_in_gallery is not defined or book.show_in_gallery %}checked{% endif %}>
+                                <div>
+                                    <strong>Mostrar en la galería principal</strong>
+                                    <div style="color: var(--text-muted); font-size: 0.85em;">(Si se desmarca, solo se podrá acceder mediante su llave NFC o dentro de la saga)</div>
+                                </div>
+                            </label>
+
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="is_saga_cover" value="1" style="margin-top: 3px; accent-color: var(--accent-cyan);" {% if book.is_saga_cover %}checked{% endif %}>
+                                <div>
+                                    <strong>⭐ Portada principal de la saga</strong>
+                                    <div style="color: var(--text-muted); font-size: 0.85em;">(Fija este tomo/obra como la portada representativa en la galería)</div>
+                                </div>
+                            </label>
+
+                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="saga_random_cover" value="1" style="margin-top: 3px; accent-color: var(--accent-cyan);" {% if book.saga_random_cover %}checked{% endif %}>
+                                <div>
+                                    <strong>🎲 Cambio aleatorio por saga</strong>
+                                    <div style="color: var(--text-muted); font-size: 0.85em;">(La galería rotará aleatoriamente la portada de la saga en cada visita)</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-default" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-theme">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PROGRESO DE CARGA -->
+    <div class="progress-modal" id="progressModal" style="display: none;">
+        <div class="progress-box" style="text-align: center;">
+            <i class="fa-solid fa-cloud-arrow-up fa-3x" style="color: var(--accent-cyan);"></i>
+            <h3 style="margin-top: 15px;">Subiendo Archivo al Servidor...</h3>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+
+            <div class="progress-status">
+                <span id="progressPercent">0%</span>
+                <span id="progressDetails">Enviando datos...</span>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 BookNFC. Desarrollado para la lectura y el entretenimiento.</p>
+    </footer>
+
+    {% if session.get('logged_in') %}
+    <script>
+        // Modal de edición - Control de estado
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'flex';
+            updateEditFileInputConstraints(document.getElementById('editType').value);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Control de restricciones de archivos en la edición
+        function updateEditFileInputConstraints(type) {
+            const fileInput = document.getElementById('editFileInput');
+            const fileLabel = document.getElementById('editFileInputLabel');
+            if (!fileInput || !fileLabel) return;
+            
+            if (type === 'book' || type === 'manga') {
+                fileInput.accept = ".cbr,.cbz,.pdf,.epub,.rar,.zip";
+                fileInput.multiple = false;
+                fileInput.name = "file";
+                fileLabel.innerText = type === 'manga' ? "Reemplazar Archivo de Manga (.cbr, .cbz, .pdf, .epub) - Opcional" : "Reemplazar Archivo (.cbr, .cbz, .pdf, .epub) - Opcional";
+            } else if (type === 'movie') {
+                fileInput.accept = "video/*,.mp4,.mkv,.webm,.avi";
+                fileInput.multiple = false;
+                fileInput.name = "file";
+                fileLabel.innerText = "Reemplazar Video (.mp4, .webm) - Opcional";
+            } else if (type === 'series' || type === 'anime') {
+                fileInput.accept = "video/*,.mp4,.mkv,.webm,.avi";
+                fileInput.multiple = true;
+                fileInput.name = "files[]";
+                fileLabel.innerText = type === 'anime' ? "Reemplazar Episodios de Anime (Múltiple) - Opcional" : "Reemplazar Capítulos de la Serie (Múltiple) - Opcional";
+            } else if (type === 'music') {
+                fileInput.accept = "audio/*,.opus,.mp3,.wav,.flac,.ogg,.m4a,.aac";
+                fileInput.multiple = true;
+                fileInput.name = "files[]";
+                fileLabel.innerText = "Reemplazar Pistas de Audio (Múltiple) - Opcional";
+            }
+        }
+
+        document.getElementById('editType').addEventListener('change', function() {
+            updateEditFileInputConstraints(this.value);
+        });
+
+        // Subida con progreso del formulario de edición
+        document.getElementById('editForm').onsubmit = function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const xhr = new XMLHttpRequest();
+
+            const editModal = document.getElementById('editModal');
+            const progressModal = document.getElementById('progressModal');
+            const barFill = document.getElementById('progressBarFill');
+            const percentText = document.getElementById('progressPercent');
+            const detailsText = document.getElementById('progressDetails');
+
+            // Ocultar modal de edición y mostrar progreso
+            editModal.style.display = 'none';
+            progressModal.style.display = 'flex';
+
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    barFill.style.width = percentComplete + '%';
+                    percentText.innerText = percentComplete + '%';
+
+                    const loadedMB = (event.loaded / (1024 * 1024)).toFixed(1);
+                    const totalMB = (event.total / (1024 * 1024)).toFixed(1);
+                    detailsText.innerText = `${loadedMB} MB de ${totalMB} MB`;
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    detailsText.innerText = "¡Cambios guardados con éxito!";
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    alert("Error guardando los cambios.");
+                    progressModal.style.display = 'none';
+                    editModal.style.display = 'flex';
+                }
+            };
+
+            xhr.onerror = function() {
+                alert("Error de red al actualizar la obra.");
+                progressModal.style.display = 'none';
+                editModal.style.display = 'flex';
+            };
+
+            xhr.open('POST', this.getAttribute('action'), true);
+            xhr.send(formData);
+        };
+
+        async function syncBookMetadata(bookId) {
+            if (!confirm('¿Deseas sincronizar la portada oficial, sinopsis y géneros desde Radarr/Sonarr?')) return;
+            try {
+                const res = await fetch(`/admin/api/sync-book-metadata/${bookId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert('¡Metadatos y portada sincronizados exitosamente desde Radarr/Sonarr!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'No se encontró en Radarr/Sonarr'));
+                }
+            } catch (err) {
+                alert('Error al conectar con el servidor: ' + err.message);
+            }
+        }
+    </script>
+    {% endif %}
 
 </body>
 

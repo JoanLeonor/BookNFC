@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - BookNFC Biblioteca Digital</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --surface-hover: #1e2532;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-gradient: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(79, 172, 254, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 95% 90%, rgba(0, 242, 254, 0.07) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* HEADER */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(21, 26, 35, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.95rem 1.5rem;
+        }
+
+        .header-container {
+            max-width: 75rem;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0.15rem 0.5rem rgba(79, 172, 254, 0.3));
+        }
+
+        .logo h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.03rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* MAIN CONTAINER */
+        main {
+            max-width: 75rem;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* HERO BANNER */
+        .hero {
+            text-align: center;
+            margin-bottom: 2.8rem;
+        }
+
+        .hero h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.04rem;
+            background: linear-gradient(135deg, #ffffff 40%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 38rem;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* CATEGORIES GRID */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.8rem;
+        }
+
+        @media (max-width: 48rem) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* CATEGORY CARD */
+        .category-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* CARD HOVER EFFECT */
+        .category-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, var(--card-glow, rgba(79, 172, 254, 0.15)) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .category-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--card-accent, var(--accent-cyan));
+            box-shadow: 0 10px 30px var(--card-shadow, rgba(0, 242, 254, 0.12));
+        }
+
+        .category-card:hover::after {
+            opacity: 1;
+        }
+
+        /* CARD CONTENT */
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7em;
+            color: var(--card-accent, var(--accent-cyan));
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover .icon-box {
+            background: var(--card-accent, var(--accent-cyan));
+            color: #0b0e14;
+            box-shadow: 0 4px 15px var(--card-shadow, rgba(0, 242, 254, 0.3));
+            transform: rotate(-3deg) scale(1.05);
+        }
+
+        .count-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.82em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover .count-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-bottom {
+            position: relative;
+            z-index: 2;
+        }
+
+        .category-card h3 {
+            font-size: 1.4em;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+            transition: color 0.3s;
+        }
+
+        .category-card:hover h3 {
+            color: var(--card-accent, var(--text-main));
+        }
+
+        .category-card p {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* BUTTON */
+        .btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+        }
+
+        .btn-admin {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-admin:hover {
+            background: var(--surface);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.15);
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 25px;
+            text-align: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        /* SECCIÓN AÑADIDO RECIENTEMENTE */
+        .recent-section {
+            margin-top: 50px;
+            border-top: 1px solid var(--border);
+            padding-top: 40px;
+        }
+
+        .recent-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .recent-header h2 {
+            font-size: 1.5em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .recent-header i {
+            font-size: 1.4em;
+            color: var(--accent-cyan);
+            filter: drop-shadow(0 2px 6px rgba(0, 242, 254, 0.3));
+        }
+
+        /* CARDS GRID & CARDS */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+
+        .card-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .card-item:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.12);
+        }
+
+        .cover-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            background: #10141c;
+        }
+
+        .cover-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card-item:hover .cover-wrapper img {
+            transform: scale(1.06);
+        }
+
+        .nfc-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.75em;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        .type-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(11, 14, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.72em;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .type-book { border-color: rgba(79, 172, 254, 0.4); color: #4facfe; }
+        .type-manga { border-color: rgba(16, 185, 129, 0.4); color: #10b981; }
+        .type-movie { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
+        .type-series { border-color: rgba(245, 158, 11, 0.4); color: #f59e0b; }
+        .type-music { border-color: rgba(139, 92, 246, 0.4); color: #8b5cf6; }
+        .type-anime { border-color: rgba(236, 72, 153, 0.4); color: #ec4899; }
+
+        .saga-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(11, 14, 20, 0.9);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.72em;
+            font-weight: 800;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-details {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .card-meta {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        .tags-wrapper {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .category-tag {
+            font-size: 0.68em;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .card-actions .btn {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 0.8em;
+            justify-content: center;
+        }
+
+        .btn-theme {
+            background: var(--accent-gradient);
+            color: #0b0e14;
+            border: none;
+            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.15);
+            font-weight: 700;
+        }
+
+        .btn-theme:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="/" class="logo">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <h1>BookNFC</h1>
+            </a>
+
+            <a href="/admin" class="btn btn-admin"><i class="fa-solid fa-user-gear"></i> Panel Admin</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Banner -->
+        <section class="hero">
+            <h2>Biblioteca y Centro Multimedia Digital</h2>
+            <p>Selecciona una categoría de contenido para explorar las obras registradas a las que tienes acceso.</p>
+        </section>
+
+        <!-- Categories Grid -->
+        <section class="categories-grid">
+            
+            <!-- Libros -->
+            <a href="/category/book" class="category-card" 
+               style="--card-accent: #4facfe; --card-glow: rgba(79, 172, 254, 0.08); --card-shadow: rgba(79, 172, 254, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-book"></i></div>
+                    <span class="count-badge">{{ type_counts['book'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Libros</h3>
+                    <p>Colección de obras literarias y novelas en formato digital.</p>
+                </div>
+            </a>
+
+            <!-- Mangas -->
+            <a href="/category/manga" class="category-card" 
+               style="--card-accent: #10b981; --card-glow: rgba(16, 185, 129, 0.08); --card-shadow: rgba(16, 185, 129, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-book-open"></i></div>
+                    <span class="count-badge">{{ type_counts['manga'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Mangas</h3>
+                    <p>Historietas japonesas y cómics en tira vertical u hojas.</p>
+                </div>
+            </a>
+
+            <!-- Películas -->
+            <a href="/category/movie" class="category-card" 
+               style="--card-accent: #ef4444; --card-glow: rgba(239, 68, 68, 0.08); --card-shadow: rgba(239, 68, 68, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-film"></i></div>
+                    <span class="count-badge">{{ type_counts['movie'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Películas</h3>
+                    <p>Largometrajes y material fílmico para reproducir en el navegador.</p>
+                </div>
+            </a>
+
+            <!-- Series -->
+            <a href="/category/series" class="category-card" 
+               style="--card-accent: #f59e0b; --card-glow: rgba(245, 158, 11, 0.08); --card-shadow: rgba(245, 158, 11, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-tv"></i></div>
+                    <span class="count-badge">{{ type_counts['series'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Series</h3>
+                    <p>Colección de capítulos organizados por temporadas.</p>
+                </div>
+            </a>
+
+            <!-- Animes -->
+            <a href="/category/anime" class="category-card" 
+               style="--card-accent: #ec4899; --card-glow: rgba(236, 72, 153, 0.08); --card-shadow: rgba(236, 72, 153, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-cat"></i></div>
+                    <span class="count-badge">{{ type_counts['anime'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Animes</h3>
+                    <p>Series y producciones animadas de origen japonés.</p>
+                </div>
+            </a>
+
+            <!-- Música -->
+            <a href="/category/music" class="category-card" 
+               style="--card-accent: #8b5cf6; --card-glow: rgba(139, 92, 246, 0.08); --card-shadow: rgba(139, 92, 246, 0.25);">
+                <div class="card-top">
+                    <div class="icon-box"><i class="fa-solid fa-music"></i></div>
+                    <span class="count-badge">{{ type_counts['music'] }} Obras</span>
+                </div>
+                <div class="card-bottom">
+                    <h3>Música</h3>
+                    <p>Álbumes de audio, bandas sonoras y temas musicales.</p>
+                </div>
+            </a>
+
+        </section>
+
+        <!-- Añadido recientemente -->
+        {% if recent_books %}
+        <section class="recent-section">
+            <div class="recent-header">
+                <i class="fa-solid fa-clock"></i>
+                <h2>Añadido recientemente</h2>
+            </div>
+            
+            <div class="cards-grid">
+                {% for book in recent_books %}
+                <div class="card-item">
+                    <a href="/book/{{ book.id }}">
+                        <div class="cover-wrapper">
+                            <img src="/static/covers/{{ book.cover }}" alt="Portada de {{ book.title }}" loading="lazy">
+                            <span class="nfc-badge">{{ book.nfc_key }}</span>
+                            
+                            {% if book.is_saga_group and book.saga_total_items > 1 %}
+                                <span class="saga-badge" title="{% if book.has_random_cover %}Rotación aleatoria activa{% else %}Saga con múltiples obras{% endif %}">
+                                    {% if book.has_random_cover %}<i class="fa-solid fa-dice"></i>{% else %}<i class="fa-solid fa-layer-group"></i>{% endif %}
+                                    {{ book.saga_total_items }} {% if book.type == 'manga' %}Tomos{% elif book.type in ['series', 'anime'] %}Caps{% elif book.type == 'music' %}Pistas{% elif book.type == 'book' %}Libros{% else %}Vol.{% endif %}
+                                </span>
+                            {% endif %}
+
+                            <!-- Badge de tipo -->
+                            <span class="type-badge type-{{ book.type|default('book') }}">
+                                {% if book.type == 'movie' %}<i class="fa-solid fa-film"></i> Película
+                                {% elif book.type == 'series' %}<i class="fa-solid fa-tv"></i> Serie
+                                {% elif book.type == 'music' %}<i class="fa-solid fa-music"></i> Música
+                                {% elif book.type == 'anime' %}<i class="fa-solid fa-cat"></i> Anime
+                                {% elif book.type == 'manga' %}<i class="fa-solid fa-book-open"></i> Manga
+                                {% else %}<i class="fa-solid fa-book"></i> Libro
+                                {% endif %}
+                            </span>
+                        </div>
+                    </a>
+
+                    <div class="card-details">
+                        <div class="card-info">
+                            <a href="/book/{{ book.id }}" style="text-decoration: none; color: inherit;">
+                                <h3 class="card-title" title="{% if book.saga %}{{ book.saga }}{% else %}{{ book.title }}{% endif %}">
+                                    {% if book.saga %}
+                                        {{ book.saga }}
+                                    {% else %}
+                                        {{ book.title }}
+                                    {% endif %}
+                                </h3>
+                            </a>
+                            <div class="card-meta">
+                                {% if book.author %}
+                                    <span class="meta-item"><i class="fa-solid fa-user"></i> {{ book.author }}</span>
+                                {% endif %}
+                                {% if book.saga %}
+                                    <span class="meta-item"><i class="fa-solid fa-folder-open"></i> {{ book.saga }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if book.category %}
+                                <div class="tags-wrapper">
+                                    {% for tag in book.category.split(',') %}
+                                        {% if tag.strip() %}
+                                            <span class="category-tag">{{ tag.strip() }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-actions">
+                            {% if book.type in ['movie', 'series', 'music', 'anime'] %}
+                                <a href="/player/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-play"></i> Reproducir</a>
+                            {% else %}
+                                <a href="/read/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-book-open"></i> Leer</a>
+                            {% endif %}
+                            <a href="/book/{{ book.id }}" class="btn btn-default" title="Ver Ficha / Detalles"><i class="fa-solid fa-circle-info"></i> Detalle</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 BookNFC. Desarrollado para la lectura y el entretenimiento.</p>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TapBox - Monitor de Conversión a MP4 Web</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0e1117;
+            --bg-secondary: #161b22;
+            --bg-card: rgba(26, 31, 44, 0.75);
+            --bg-card-hover: rgba(35, 42, 59, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-accent: rgba(255, 136, 0, 0.3);
+            --vlc-orange: #ff8800;
+            --vlc-orange-glow: rgba(255, 136, 0, 0.4);
+            --vlc-orange-light: #ffaa33;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --success: #2ea043;
+            --success-glow: rgba(46, 160, 67, 0.3);
+            --danger: #f85149;
+            --warning: #d29922;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 136, 0, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(56, 139, 253, 0.04) 0%, transparent 40%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px 24px 60px;
+        }
+
+        /* HEADER */
+        .header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1300px;
+            margin: 0 auto 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--vlc-orange), var(--vlc-orange-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            box-shadow: 0 4px 15px var(--vlc-orange-glow);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            background: rgba(255, 136, 0, 0.15);
+            color: var(--vlc-orange-light);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--vlc-orange);
+            color: var(--vlc-orange-light);
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* TOP STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-accent);
+        }
+
+        .stat-icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon-orange {
+            background: rgba(255, 136, 0, 0.12);
+            color: var(--vlc-orange);
+        }
+
+        .stat-icon-green {
+            background: rgba(46, 160, 67, 0.12);
+            color: var(--success);
+        }
+
+        .stat-icon-blue {
+            background: rgba(56, 139, 253, 0.12);
+            color: #58a6ff;
+        }
+
+        .stat-icon-purple {
+            background: rgba(187, 128, 255, 0.12);
+            color: #bc8cff;
+        }
+
+        .stat-info h4 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* HERO ACTIVE CONVERSION CARD */
+        .hero-card {
+            background: linear-gradient(135deg, rgba(26, 31, 44, 0.9), rgba(18, 22, 32, 0.95));
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hero-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(46, 160, 67, 0.15);
+            color: #3fb950;
+            border: 1px solid rgba(46, 160, 67, 0.3);
+        }
+
+        .status-active .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3fb950;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        .status-idle {
+            background: rgba(139, 148, 158, 0.15);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(63, 185, 80, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); }
+        }
+
+        .hero-title-box h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hero-title-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* PROGRESS BARS */
+        .progress-wrapper {
+            margin: 24px 0 16px;
+        }
+
+        .progress-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            height: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff8800, #ffaa33, #3fb950);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 12px var(--vlc-orange-glow);
+        }
+
+        .hero-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-ctrl {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--vlc-orange), var(--vlc-orange-light));
+            color: #fff;
+            box-shadow: 0 4px 15px var(--vlc-orange-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--vlc-orange-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(248, 81, 73, 0.15);
+            color: #ff7b72;
+            border: 1px solid rgba(248, 81, 73, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(248, 81, 73, 0.25);
+        }
+
+        /* DUAL COLUMN SECTION */
+        .dual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .dual-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* COMPLETED LIST */
+        .completed-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+        }
+
+        .completed-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .completed-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(46, 160, 67, 0.3);
+        }
+
+        .comp-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .comp-icon {
+            color: var(--success);
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .comp-text {
+            min-width: 0;
+        }
+
+        .comp-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .comp-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .comp-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(46, 160, 67, 0.15);
+            color: #3fb950;
+            border: 1px solid rgba(46, 160, 67, 0.3);
+            flex-shrink: 0;
+        }
+
+        /* TERMINAL LOGS */
+        .terminal-box {
+            flex: 1;
+            background: #090d13;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            color: #7ee787;
+            overflow-y: auto;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+        }
+
+        .log-line.error { color: #ff7b72; }
+        .log-line.info { color: #79c0ff; }
+        .log-line.success { color: #7ee787; }
+        .log-line.warn { color: #d29922; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 12px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER NAVIGATION -->
+    <header class="header-nav">
+        <a href="/" class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-play"></i></div>
+            <div class="brand-title">TapBox</div>
+            <span class="brand-badge">Conversor MP4</span>
+        </a>
+        <nav class="nav-links">
+            <a href="/" class="nav-btn"><i class="fa-solid fa-house"></i> Inicio</a>
+            <a href="/cleaner" class="nav-btn"><i class="fa-solid fa-broom" style="color: #00f2fe;"></i> Limpieza Disco</a>
+            <a href="/files" class="nav-btn"><i class="fa-solid fa-hard-drive" style="color: var(--info, #58a6ff);"></i> Archivos</a>
+            <a href="/admin" class="nav-btn"><i class="fa-solid fa-sliders"></i> Panel Admin</a>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <!-- TOP STATS -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-orange">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Películas Totales</h4>
+                    <div class="stat-value" id="statTotal">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Optimizadas (MP4)</h4>
+                    <div class="stat-value" id="statCompleted">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-blue">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Pendientes</h4>
+                    <div class="stat-value" id="statPending">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon-box stat-icon-purple">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Progreso Global</h4>
+                    <div class="stat-value" id="statPercent">0%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HERO ACTIVE TASK -->
+        <section class="hero-card">
+            <div class="hero-top">
+                <div class="hero-status-pill status-active" id="heroStatusBadge">
+                    <span class="pulse-dot"></span>
+                    <span id="heroStatusText">Servicio Activo</span>
+                </div>
+                <div style="color: var(--text-secondary); font-size: 13px;">
+                    <i class="fa-solid fa-clock"></i> Última sincronización: <span id="heroLastUpdate">--</span>
+                </div>
+            </div>
+
+            <div class="hero-title-box">
+                <h2>
+                    <i class="fa-solid fa-compact-disc fa-spin" style="color: var(--vlc-orange);" id="activeSpinner"></i>
+                    <span id="activeMovieTitle">Iniciando escaneo de biblioteca...</span>
+                </h2>
+                <p id="activeMovieMeta">Analizando códecs de video y audio en el almacenamiento...</p>
+            </div>
+
+            <!-- PROGRESO DE LA PELÍCULA ACTUAL -->
+            <div class="progress-wrapper" style="margin-bottom: 20px;">
+                <div class="progress-label-row">
+                    <span id="activeMovieProgressLabel"><i class="fa-solid fa-spinner fa-spin" style="color: var(--vlc-orange);"></i> Película Actual: Procesando...</span>
+                    <span id="activeMoviePercentNum" style="color: var(--vlc-orange-light);">0%</span>
+                </div>
+                <div class="progress-track" style="height: 10px;">
+                    <div class="progress-bar-fill" id="activeMovieProgressBar" style="background: linear-gradient(90deg, #ff8800, #ffaa33);"></div>
+                </div>
+            </div>
+
+            <!-- PROGRESO GLOBAL DE LA BIBLIOTECA -->
+            <div class="progress-wrapper">
+                <div class="progress-label-row">
+                    <span id="progressSummary"><i class="fa-solid fa-list-check"></i> Biblioteca Global: 0 de 0 películas</span>
+                    <span id="progressPercentNum">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar-fill" id="mainProgressBar"></div>
+                </div>
+            </div>
+
+            <div class="hero-controls">
+                <button class="btn-ctrl btn-primary" onclick="triggerStart()" id="btnStart">
+                    <i class="fa-solid fa-play"></i> Reanudar Conversión
+                </button>
+                <button class="btn-ctrl btn-danger" onclick="triggerStop()" id="btnStop">
+                    <i class="fa-solid fa-stop"></i> Pausar Proceso
+                </button>
+                <button class="btn-ctrl btn-secondary" onclick="fetchStatus()">
+                    <i class="fa-solid fa-rotate"></i> Actualizar
+                </button>
+            </div>
+        </section>
+
+        <!-- DUAL COLUMN PANELS -->
+        <div class="dual-grid">
+            <!-- PELÍCULAS COMPLETADAS -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-list-check" style="color: var(--success);"></i> Películas Optimizadas</h3>
+                    <span style="font-size: 12px; color: var(--text-secondary);" id="compBadgeCount">0 completadas</span>
+                </div>
+                <div class="completed-list" id="completedContainer">
+                    <div class="empty-placeholder">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px;"></i>
+                        <span>Cargando lista de optimizaciones...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TERMINAL LOGS -->
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-terminal" style="color: #79c0ff;"></i> Registro en Vivo (FFmpeg)</h3>
+                    <button class="nav-btn" style="padding: 4px 10px; font-size: 11px;" onclick="toggleAutoScroll()" id="btnAutoScroll">
+                        <i class="fa-solid fa-arrows-down-to-line"></i> Auto-Scroll: ON
+                    </button>
+                </div>
+                <div class="terminal-box" id="terminalConsole">
+                    <div class="log-line info">[INFO] Conectando con el motor de conversión de TapBox...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let autoScroll = true;
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('btnAutoScroll');
+            btn.innerHTML = autoScroll ? '<i class="fa-solid fa-arrows-down-to-line"></i> Auto-Scroll: ON' : '<i class="fa-solid fa-pause"></i> Auto-Scroll: PAUSA';
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/converter/status');
+                if (!res.ok) return;
+                const data = await res.json();
+                renderStatus(data);
+            } catch (e) {
+                console.error("Error consultando estado:", e);
+            }
+        }
+
+        function renderStatus(data) {
+            const isRunning = data.is_running;
+            const total = data.total_files || 0;
+            const completed = data.completed_files || 0;
+            const pending = Math.max(0, total - completed);
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            // Stats
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statCompleted').innerText = completed;
+            document.getElementById('statPending').innerText = pending;
+            document.getElementById('statPercent').innerText = percent + "%";
+
+            // Status Badge
+            const badge = document.getElementById('heroStatusBadge');
+            const statusText = document.getElementById('heroStatusText');
+            const spinner = document.getElementById('activeSpinner');
+
+            if (isRunning) {
+                badge.className = "hero-status-pill status-active";
+                statusText.innerText = "Procesando en Segundo Plano";
+                spinner.style.display = "inline-block";
+            } else {
+                badge.className = "hero-status-pill status-idle";
+                statusText.innerText = (completed >= total && total > 0) ? "Completado al 100%" : "En Pausa / Inactivo";
+                spinner.style.display = "none";
+            }
+
+            // Current Movie Info
+            const movieTitleEl = document.getElementById('activeMovieTitle');
+            const movieMetaEl = document.getElementById('activeMovieMeta');
+            const curMbWritten = data.current_mb_written || 0;
+            const curMbTotal = data.current_mb_total || 0;
+            const curFilePct = data.current_file_percent || (isRunning ? 15 : 0);
+
+            if (isRunning && data.current_title) {
+                movieTitleEl.innerText = data.current_title;
+                movieMetaEl.innerText = `Modo: ${data.current_mode || 'Optimización'} | Códecs: [Video: ${data.v_codec || '--'} | Audio: ${data.a_codec || '--'}]`;
+
+                if (curMbTotal > 0) {
+                    const writtenGb = (curMbWritten / 1024).toFixed(2);
+                    const totalGb = (curMbTotal / 1024).toFixed(2);
+                    document.getElementById('activeMovieProgressLabel').innerHTML = `<i class="fa-solid fa-compact-disc fa-spin" style="color: var(--vlc-orange);"></i> Película Actual: <strong>${writtenGb} GB / ${totalGb} GB</strong>`;
+                } else {
+                    document.getElementById('activeMovieProgressLabel').innerHTML = `<i class="fa-solid fa-compact-disc fa-spin" style="color: var(--vlc-orange);"></i> Película Actual: Procesando flujo de datos...`;
+                }
+                document.getElementById('activeMoviePercentNum').innerText = curFilePct + "%";
+                document.getElementById('activeMovieProgressBar').style.width = curFilePct + "%";
+            } else if (!isRunning && completed >= total && total > 0) {
+                movieTitleEl.innerText = "¡Toda la biblioteca de películas está en formato MP4 Web!";
+                movieMetaEl.innerText = "Todas las obras se reproducen instantáneamente con 0% de uso de CPU.";
+                document.getElementById('activeMovieProgressLabel').innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Todas las películas convertidas`;
+                document.getElementById('activeMoviePercentNum').innerText = "100%";
+                document.getElementById('activeMovieProgressBar').style.width = "100%";
+            } else {
+                movieTitleEl.innerText = "No hay conversión activa en este momento.";
+                movieMetaEl.innerText = "Haz clic en 'Reanudar Conversión' para iniciar la optimización por lotes.";
+                document.getElementById('activeMovieProgressLabel').innerText = "En espera...";
+                document.getElementById('activeMoviePercentNum').innerText = "0%";
+                document.getElementById('activeMovieProgressBar').style.width = "0%";
+            }
+
+            // Progress Bar Global
+            document.getElementById('progressSummary').innerHTML = `<i class="fa-solid fa-list-check"></i> Biblioteca Global: <strong>${completed} de ${total}</strong> películas optimizadas`;
+            document.getElementById('progressPercentNum').innerText = percent + "%";
+            document.getElementById('mainProgressBar').style.width = percent + "%";
+
+            // Last Update
+            if (data.last_update) {
+                const d = new Date(data.last_update * 1000);
+                document.getElementById('heroLastUpdate').innerText = d.toLocaleTimeString();
+            }
+
+            // Completed List
+            renderCompletedList(data.completed_list || []);
+
+            // Logs
+            renderLogs(data.recent_logs || []);
+        }
+
+        function renderCompletedList(list) {
+            const container = document.getElementById('completedContainer');
+            const badgeCount = document.getElementById('compBadgeCount');
+            badgeCount.innerText = `${list.length} optimizadas`;
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-placeholder">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 32px;"></i>
+                        <span>Aún no hay películas en el registro de esta sesión.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = "";
+            list.slice().reverse().forEach(item => {
+                html += `
+                    <div class="completed-item">
+                        <div class="comp-info">
+                            <i class="fa-solid fa-circle-check comp-icon"></i>
+                            <div class="comp-text">
+                                <div class="comp-title">${escapeHtml(item.title)}</div>
+                                <div class="comp-meta">
+                                    <i class="fa-solid fa-bolt"></i> ${item.mode || 'MP4'} | 
+                                    <i class="fa-solid fa-stopwatch"></i> ${item.elapsed_s ? item.elapsed_s + 's' : '--'}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="comp-badge">✅ Web Ready</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderLogs(logs) {
+            const consoleEl = document.getElementById('terminalConsole');
+            if (!logs || logs.length === 0) return;
+
+            let html = "";
+            logs.forEach(line => {
+                let cls = "info";
+                if (line.includes("ERROR") || line.includes("❌")) cls = "error";
+                else if (line.includes("✅") || line.includes("Completado")) cls = "success";
+                else if (line.includes("Advertencia") || line.includes("⚠️")) cls = "warn";
+
+                html += `<div class="log-line ${cls}">${escapeHtml(line)}</div>`;
+            });
+
+            consoleEl.innerHTML = html;
+            if (autoScroll) {
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+
+        async function triggerStart() {
+            try {
+                const res = await fetch('/api/converter/start', { method: 'POST' });
+                const json = await res.json();
+                fetchStatus();
+            } catch (e) {
+                alert("Error al iniciar el conversor: " + e);
+            }
+        }
+
+        async function triggerStop() {
+            if (!confirm("¿Deseas pausar el proceso de conversión en segundo plano?")) return;
+            try {
+                const res = await fetch('/api/converter/stop', { method: 'POST' });
+                const json = await res.json();
+                fetchStatus();
+            } catch (e) {
+                alert("Error al pausar el conversor: " + e);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Iniciar polling continuo cada 2.5 segundos
+        fetchStatus();
+        setInterval(fetchStatus, 2500);
+    </script>
+</body>
+</html>

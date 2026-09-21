@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca de Medios y Descargas - TapBox Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0b0e14;
+            --surface: #151a23;
+            --surface-hover: #1c2330;
+            --border: #263040;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --danger: #ff4d6d;
+            --success: #00e676;
+            --warning: #ffb703;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h2 {
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--accent-cyan));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            color: #000;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #000;
+            border: none;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+
+        /* Banner de Ruta y Configuración */
+        .path-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .path-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .path-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+        }
+
+        .path-text .label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .path-text .value {
+            font-family: monospace;
+            font-size: 1em;
+            color: var(--accent-cyan);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        /* Estadísticas rápidas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-box-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .stat-num {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        /* Barra de Aplicaciones Rápidas (Media Stack) */
+        .apps-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .app-link-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-link-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            border-color: var(--app-color, var(--accent-cyan));
+        }
+
+        .app-link-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--app-color, var(--accent-cyan));
+            opacity: 0.8;
+        }
+
+        .app-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--app-bg, rgba(0, 242, 254, 0.1));
+            color: var(--app-color, var(--accent-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+
+        .app-link-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .app-link-title {
+            font-weight: 700;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-link-desc {
+            font-size: 0.78em;
+            color: var(--text-muted);
+        }
+
+        .app-link-port {
+            font-size: 0.72em;
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Toolbar y Filtros */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+
+        /* Grid de Medios */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .media-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .media-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+
+        .media-card.imported {
+            opacity: 0.65;
+            border-color: rgba(0, 230, 118, 0.2);
+        }
+
+        .card-cover {
+            height: 170px;
+            background: #0f172a;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-cover-placeholder {
+            font-size: 3.5em;
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .badge-type {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-movie {
+            background: rgba(255, 183, 3, 0.85);
+            color: #000;
+        }
+
+        .badge-series {
+            background: rgba(0, 242, 254, 0.85);
+            color: #000;
+        }
+
+        .badge-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 700;
+        }
+
+        .status-new {
+            background: rgba(0, 242, 254, 0.2);
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .status-imported {
+            background: rgba(0, 230, 118, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 10px;
+        }
+
+        .card-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .card-meta {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+        }
+
+        /* Modal de Progreso */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .spinner {
+            font-size: 2.5em;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            animation: fa-spin 1.5s infinite linear;
+        }
+
+        /* Modal Cambio de Ruta */
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .modal-form input {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3em;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Barra Superior -->
+        <div class="header-bar">
+            <div class="header-title">
+                <i class="fa-solid fa-server" style="color: var(--accent-cyan); font-size: 1.8em;"></i>
+                <div>
+                    <h2>Biblioteca de Medios y Descargas</h2>
+                    <p style="font-size: 0.85em; color: var(--text-muted);">Sincroniza películas y series organizadas en el servidor</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="/admin" class="btn"><i class="fa-solid fa-gear"></i> Panel Admin</a>
+                <a href="/" class="btn"><i class="fa-solid fa-house"></i> Inicio</a>
+            </div>
+        </div>
+
+        <!-- Accesos Rápidos a Media Stack (Descargas e Indexers) -->
+        <div class="apps-nav-grid">
+            <a href="http://{{ request.host.split(':')[0] }}:8080" target="_blank" class="app-link-card" style="--app-color: #00b4d8; --app-bg: rgba(0, 180, 216, 0.12);">
+                <div class="app-icon-wrap"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <div class="app-link-info">
+                    <div class="app-link-title">qBittorrent <span class="app-link-port">:8080</span></div>
+                    <div class="app-link-desc">Cliente de Descargas</div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8em; color: var(--text-muted);"></i>
+            </a>
+
+            <a href="http://{{ request.host.split(':')[0] }}:7878" target="_blank" class="app-link-card" style="--app-color: #ffb703; --app-bg: rgba(255, 183, 3, 0.12);">
+                <div class="app-icon-wrap"><i class="fa-solid fa-film"></i></div>
+                <div class="app-link-info">
+                    <div class="app-link-title">Radarr <span class="app-link-port">:7878</span></div>
+                    <div class="app-link-desc">Películas</div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8em; color: var(--text-muted);"></i>
+            </a>
+
+            <a href="http://{{ request.host.split(':')[0] }}:8989" target="_blank" class="app-link-card" style="--app-color: #00f2fe; --app-bg: rgba(0, 242, 254, 0.12);">
+                <div class="app-icon-wrap"><i class="fa-solid fa-tv"></i></div>
+                <div class="app-link-info">
+                    <div class="app-link-title">Sonarr <span class="app-link-port">:8989</span></div>
+                    <div class="app-link-desc">Series / Anime</div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8em; color: var(--text-muted);"></i>
+            </a>
+
+            <a href="http://{{ request.host.split(':')[0] }}:9117" target="_blank" class="app-link-card" style="--app-color: #9d4edd; --app-bg: rgba(157, 78, 221, 0.12);">
+                <div class="app-icon-wrap"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="app-link-info">
+                    <div class="app-link-title">Jackett <span class="app-link-port">:9117</span></div>
+                    <div class="app-link-desc">Buscador Indexers</div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.8em; color: var(--text-muted);"></i>
+            </a>
+        </div>
+
+        <!-- Banner de Ruta -->
+        <div class="path-card">
+            <div class="path-info">
+                <div class="path-icon"><i class="fa-solid fa-folder-tree"></i></div>
+                <div class="path-text">
+                    <div class="label">Ruta Raíz de Medios (MEDIA_ROOT)</div>
+                    <div class="value" id="currentPathDisplay">{{ media_root }}</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn" onclick="openPathModal()"><i class="fa-solid fa-pen-to-square"></i> Cambiar Ruta</button>
+                <button class="btn btn-primary" onclick="rescanLibrary()"><i class="fa-solid fa-arrows-rotate"></i> Re-escanear Disco</button>
+            </div>
+        </div>
+
+        <!-- Estadísticas Rápidas -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-box-icon" style="background: rgba(255, 183, 3, 0.1); color: var(--warning);"><i class="fa-solid fa-film"></i></div>
+                <div>
+                    <div class="stat-num" id="totalMoviesCount">{{ stats.total_movies }}</div>
+                    <div class="stat-label">Películas Detectadas (<span id="newMoviesCount" style="color: var(--accent-cyan);">{{ stats.new_movies }} nuevas</span>)</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-icon" style="background: rgba(0, 242, 254, 0.1); color: var(--accent-cyan);"><i class="fa-solid fa-tv"></i></div>
+                <div>
+                    <div class="stat-num" id="totalSeriesCount">{{ stats.total_series }}</div>
+                    <div class="stat-label">Series Detectadas (<span id="newSeriesCount" style="color: var(--accent-cyan);">{{ stats.new_series }} nuevas</span>)</div>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-icon" style="background: rgba(0, 230, 118, 0.1); color: var(--success);"><i class="fa-solid fa-bolt"></i></div>
+                <div>
+                    <div class="stat-num" id="totalNewCount">{{ stats.new_movies + stats.new_series }}</div>
+                    <div class="stat-label">Listas para Importar</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar de Filtros e Importación Masiva -->
+        <div class="toolbar">
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="filterItems('all', this)">Todos</button>
+                <button class="filter-btn" onclick="filterItems('new', this)">Solo Nuevos</button>
+                <button class="filter-btn" onclick="filterItems('movie', this)"><i class="fa-solid fa-film"></i> Películas</button>
+                <button class="filter-btn" onclick="filterItems('series', this)"><i class="fa-solid fa-tv"></i> Series</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button class="btn" style="border-color: var(--warning); color: var(--warning);" onclick="syncAllMetadata()"><i class="fa-solid fa-wand-magic-sparkles"></i> Actualizar Portadas y Sinopsis</button>
+                <button class="btn" onclick="toggleSelectAll()"><i class="fa-regular fa-square-check"></i> Seleccionar Nuevos</button>
+                <button class="btn btn-success" onclick="importSelected()"><i class="fa-solid fa-file-import"></i> Importar Seleccionados (<span id="selectedCount">0</span>)</button>
+            </div>
+        </div>
+
+        <!-- Grid de Obras Detectadas -->
+        <div class="media-grid" id="mediaContainer">
+            {% for m in movies %}
+            <div class="media-card item-movie {% if m.already_imported %}imported item-imported{% else %}item-new{% endif %}" 
+                 data-type="movie" 
+                 data-imported="{{ 'true' if m.already_imported else 'false' }}"
+                 data-title="{{ m.title }}"
+                 data-file="{{ m.file }}"
+                 data-cover="{{ m.cover_rel or '' }}"
+                 data-poster="{{ m.poster_remote_url or '' }}"
+                 data-synopsis="{{ m.synopsis or '' }}"
+                 data-category="{{ m.category or 'Película' }}"
+                 data-author="{{ m.author or '' }}">
+                <div class="card-cover">
+                    {% if m.cover_rel %}
+                        <img src="/media_cover_raw/{{ m.cover_rel }}" alt="{{ m.title }}" loading="lazy">
+                    {% elif m.poster_remote_url %}
+                        <img src="{{ m.poster_remote_url }}" alt="{{ m.title }}" loading="lazy">
+                    {% else %}
+                        <div class="card-cover-placeholder"><i class="fa-solid fa-film"></i></div>
+                    {% endif %}
+                    <span class="badge-type badge-movie">Película</span>
+                    {% if m.already_imported %}
+                        <span class="badge-status status-imported"><i class="fa-solid fa-check"></i> En Catálogo</span>
+                    {% else %}
+                        <span class="badge-status status-new"><i class="fa-solid fa-sparkles"></i> Nueva</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="card-title">{{ m.title }}</div>
+                    <div style="font-size: 0.78em; color: var(--text-muted); line-height: 1.4; max-height: 2.8em; overflow: hidden; text-overflow: ellipsis;">{{ m.synopsis }}</div>
+                    <div class="card-meta">
+                        <span><i class="fa-solid fa-tags" style="color: var(--accent-cyan);"></i> {{ m.category }}</span>
+                        <span><i class="fa-solid fa-hard-drive"></i> {{ m.size_mb }} MB</span>
+                    </div>
+                    <div class="card-footer">
+                        {% if not m.already_imported %}
+                            <label class="checkbox-container">
+                                <input type="checkbox" class="item-checkbox" onchange="updateSelectedCounter()">
+                                <span>Seleccionar</span>
+                            </label>
+                            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8em;" onclick="handleSingleImport(this)">Importar</button>
+                        {% else %}
+                            <span style="font-size: 0.8em; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Ya registrada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for s in series %}
+            <div class="media-card item-series {% if s.already_imported %}imported item-imported{% else %}item-new{% endif %}" 
+                 data-type="series" 
+                 data-imported="{{ 'true' if s.already_imported else 'false' }}"
+                 data-title="{{ s.title }}"
+                 data-file='{{ s.files | tojson }}'
+                 data-cover="{{ s.cover_rel or '' }}"
+                 data-poster="{{ s.poster_remote_url or '' }}"
+                 data-synopsis="{{ s.synopsis or '' }}"
+                 data-category="{{ s.category or 'Serie' }}"
+                 data-author="{{ s.author or '' }}">
+                <div class="card-cover">
+                    {% if s.cover_rel %}
+                        <img src="/media_cover_raw/{{ s.cover_rel }}" alt="{{ s.title }}" loading="lazy">
+                    {% elif s.poster_remote_url %}
+                        <img src="{{ s.poster_remote_url }}" alt="{{ s.title }}" loading="lazy">
+                    {% else %}
+                        <div class="card-cover-placeholder"><i class="fa-solid fa-tv"></i></div>
+                    {% endif %}
+                    <span class="badge-type badge-series">Serie</span>
+                    {% if s.already_imported %}
+                        <span class="badge-status status-imported"><i class="fa-solid fa-check"></i> En Catálogo</span>
+                    {% else %}
+                        <span class="badge-status status-new"><i class="fa-solid fa-sparkles"></i> Nueva</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="card-title">{{ s.title }}</div>
+                    <div style="font-size: 0.78em; color: var(--text-muted); line-height: 1.4; max-height: 2.8em; overflow: hidden; text-overflow: ellipsis;">{{ s.synopsis }}</div>
+                    <div class="card-meta">
+                        <span><i class="fa-solid fa-list-ol"></i> {{ s.episodes_count }} Episodios encontrados</span>
+                        <span><i class="fa-solid fa-hard-drive"></i> {{ s.size_mb }} MB</span>
+                    </div>
+                    <div class="card-footer">
+                        {% if not s.already_imported %}
+                            <label class="checkbox-container">
+                                <input type="checkbox" class="item-checkbox" onchange="updateSelectedCounter()">
+                                <span>Seleccionar</span>
+                            </label>
+                            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8em;" onclick="handleSingleImport(this)">Importar</button>
+                        {% else %}
+                            <span style="font-size: 0.8em; color: var(--success);"><i class="fa-solid fa-circle-check"></i> Ya registrada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if not movies and not series %}
+            <div class="empty-state">
+                <i class="fa-solid fa-folder-open"></i>
+                <h3>No se encontraron obras en la ruta</h3>
+                <p style="margin-top: 8px;">Coloca tus películas en <code>{{ media_root }}/movies</code> y series en <code>{{ media_root }}/series</code>.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal de Carga / Importación -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-card">
+            <i class="fa-solid fa-circle-notch spinner"></i>
+            <h3 id="modalTitle">Importando a TapBox...</h3>
+            <p id="modalDesc" style="color: var(--text-muted); font-size: 0.9em; margin-top: 8px;">Registrando obras en catalog.json y asignando llaves NFC...</p>
+        </div>
+    </div>
+
+    <!-- Modal de Configurar Ruta -->
+    <div class="modal" id="pathModal">
+        <div class="modal-card" style="text-align: left;">
+            <h3 style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-folder-tree" style="color: var(--accent-cyan);"></i> Cambiar Ruta de Medios</h3>
+            <p style="color: var(--text-muted); font-size: 0.85em;">Indica la ruta en el disco donde se ubican las carpetas <code>movies</code> y <code>series</code>.</p>
+            
+            <div class="modal-form">
+                <input type="text" id="inputMediaPath" value="{{ media_root }}" placeholder="Ej: /data/media">
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button class="btn" onclick="closePathModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveMediaPath()">Guardar y Escanear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterItems(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.media-card');
+            cards.forEach(c => {
+                const cType = c.getAttribute('data-type');
+                const isImported = c.getAttribute('data-imported') === 'true';
+
+                if (type === 'all') {
+                    c.style.display = 'flex';
+                } else if (type === 'new') {
+                    c.style.display = !isImported ? 'flex' : 'none';
+                } else if (type === 'movie') {
+                    c.style.display = cType === 'movie' ? 'flex' : 'none';
+                } else if (type === 'series') {
+                    c.style.display = cType === 'series' ? 'flex' : 'none';
+                }
+            });
+        }
+
+        function updateSelectedCounter() {
+            const checked = document.querySelectorAll('.item-checkbox:checked');
+            document.getElementById('selectedCount').innerText = checked.length;
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.media-card.item-new .item-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            updateSelectedCounter();
+        }
+
+        function openPathModal() {
+            document.getElementById('pathModal').style.display = 'flex';
+        }
+
+        function closePathModal() {
+            document.getElementById('pathModal').style.display = 'none';
+        }
+
+        async function saveMediaPath() {
+            const newPath = document.getElementById('inputMediaPath').value.trim();
+            if (!newPath) return alert('Por favor ingresa una ruta válida.');
+
+            const form = new FormData();
+            form.append('media_root', newPath);
+
+            try {
+                const res = await fetch('/admin/api/save-media-root', { method: 'POST', body: form });
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo guardar la ruta'));
+                }
+            } catch (err) {
+                alert('Error al comunicar con el servidor: ' + err.message);
+            }
+        }
+
+        async function rescanLibrary() {
+            document.getElementById('loadingModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = 'Escaneando disco...';
+            document.getElementById('modalDesc').innerText = 'Buscando archivos de video y portadas en MEDIA_ROOT...';
+            
+            try {
+                const res = await fetch('/admin/api/library-scan');
+                const data = await res.json();
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error al escanear: ' + data.error);
+                    document.getElementById('loadingModal').style.display = 'none';
+                }
+            } catch (err) {
+                alert('Error de red al escanear: ' + err.message);
+                document.getElementById('loadingModal').style.display = 'none';
+            }
+        }
+
+        function getItemDataFromCard(card) {
+            let fileVal = card.getAttribute('data-file');
+            try {
+                fileVal = JSON.parse(fileVal);
+            } catch (e) {}
+
+            return {
+                title: card.getAttribute('data-title'),
+                type: card.getAttribute('data-type'),
+                file: fileVal,
+                cover_rel: card.getAttribute('data-cover'),
+                poster_remote_url: card.getAttribute('data-poster'),
+                synopsis: card.getAttribute('data-synopsis'),
+                category: card.getAttribute('data-category'),
+                author: card.getAttribute('data-author')
+            };
+        }
+
+        async function syncAllMetadata() {
+            document.getElementById('loadingModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = 'Consultando Radarr y Sonarr...';
+            document.getElementById('modalDesc').innerText = 'Descargando portadas oficiales y sinopsis completas...';
+
+            try {
+                const res = await fetch('/admin/api/sync-all-metadata', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`¡Metadatos actualizados! Se actualizaron ${data.count} obras en el catálogo.`);
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo sincronizar'));
+                    document.getElementById('loadingModal').style.display = 'none';
+                }
+            } catch (err) {
+                alert('Error al conectar con el servidor: ' + err.message);
+                document.getElementById('loadingModal').style.display = 'none';
+            }
+        }
+
+        async function handleSingleImport(button) {
+            const card = button.closest('.media-card');
+            if (!card) return;
+            const item = getItemDataFromCard(card);
+            await sendImport([item]);
+        }
+
+        async function importSelected() {
+            const checked = document.querySelectorAll('.item-checkbox:checked');
+            if (checked.length === 0) {
+                return alert('Por favor selecciona al menos una obra para importar.');
+            }
+
+            const items = [];
+            checked.forEach(cb => {
+                const card = cb.closest('.media-card');
+                if (card) {
+                    items.push(getItemDataFromCard(card));
+                }
+            });
+
+            await sendImport(items);
+        }
+
+        async function sendImport(items) {
+            document.getElementById('loadingModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = `Importando ${items.length} obra(s)...`;
+            document.getElementById('modalDesc').innerText = 'Descargando portadas de alta resolución y registrando en catalog.json...';
+
+            try {
+                const res = await fetch('/admin/api/library-import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: items })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`¡Éxito! Se importaron ${data.count} obras con sus portadas oficiales.`);
+                    location.reload();
+                } else {
+                    alert('Error al importar: ' + (data.error || 'Desconocido'));
+                    document.getElementById('loadingModal').style.display = 'none';
+                }
+            } catch (err) {
+                alert('Error de red al importar: ' + err.message);
+                document.getElementById('loadingModal').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

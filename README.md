@@ -1,38 +1,58 @@
 # 📖 TapBox (BookNFC) 🚀
 
-**TapBox** (también conocido como **BookNFC**) es un sistema de biblioteca digital auto-alojado basado en **Flask** diseñado para conectar el mundo físico con el digital. Permite vincular tarjetas o etiquetas físicas **NFC** a libros, mangas o cómics digitales. Al escanear una tarjeta NFC, el usuario es redirigido automáticamente a la información de la obra y a un lector interactivo en tira vertical continua.
+**TapBox** (también conocido como **BookNFC**) es un ecosistema de biblioteca digital y centro multimedia auto-alojado basado en **Flask**, diseñado para conectar el mundo físico con el digital. Permite vincular tarjetas o etiquetas físicas **NFC** a libros, mangas, cómics, películas, series, animes y música. Al escanear una tarjeta NFC, el usuario es redirigido automáticamente a la información de la obra, a su reproductor multimedia, a su lector en tira vertical continua o a la estación de música interactiva.
 
-El proyecto está diseñado y optimizado para ser lo suficientemente ligero como para ejecutarse en una **Raspberry Pi Zero** o cualquier servidor local.
+El proyecto está diseñado y optimizado para ser extremadamente ligero y eficiente, permitiendo su ejecución en una **Raspberry Pi**, servidor local o contenedor Docker.
 
 ---
 
 ## 📸 Capturas de Pantalla
 
-A continuación se muestran algunas de las interfaces del sistema:
+| Galería Principal | Vista de Obra (NFC) | Panel de Control de Administración |
+|:---:|:---:|:---:|
+| ![Galería Principal](Capturas/pantalla%20gallery.png) | ![Vista Obra](Capturas/pantalla%20nfc%20A.png) | ![Panel Admin](Capturas/pantalla%20admin.png) |
 
-| Login de Administración | Galería de Obras |
-|:---:|:---:|
-| ![Login](Capturas/pantalla%20login.png) | ![Galería](Capturas/pantalla%20gallery.png) |
-
-| Vista de Obra (NFC) | Panel de Control de Administración |
-|:---:|:---:|
-| ![Vista Obra](Capturas/pantalla%20nfc%20A.png) | ![Panel Admin](Capturas/pantalla%20admin.png) |
-
-| Carga Masiva (Batch) | Error NFC No Asignado |
-|:---:|:---:|
-| ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
+| Login de Administración | Carga Masiva (Batch) | Error NFC No Asignado |
+|:---:|:---:|:---:|
+| ![Login](Capturas/pantalla%20login.png) | ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
 
 ---
 
 ## ✨ Características Principales
 
-*   **🔗 Integración NFC Dinámica**: Mapeo de tarjetas físicas a través de la ruta `/nfc/<nfc_key>`. Si se escanea una tarjeta no registrada, el sistema muestra una interfaz dedicada que permite al administrador asignarla rápidamente a una obra nueva.
-*   **📖 Lector Web Universal**: Lector interactivo optimizado para tira vertical continua (ideal para webtoons, cómics y mangas). Extrae y cachea en tiempo real páginas de archivos `.cbr` usando utilidades del sistema (`unar` / `7z`).
-*   **📂 Carga Individual y Masiva (Batch Upload)**:
-    *   Formulario de carga de una sola obra en el panel de administración.
-    *   Carga masiva asíncrona con barra de progreso interactiva para registrar múltiples cómics a la vez.
-*   **🛡️ Panel de Administración Protegido**: Acceso restringido por contraseña para gestionar obras (añadir, eliminar) y cambiar credenciales.
-*   **💾 Monitoreo de Almacenamiento**: Muestra estadísticas en tiempo real sobre el uso del espacio en disco duro directamente en el panel de administración.
+* **🔗 Integración NFC Dinámica**: Mapeo inteligente de tarjetas físicas a través de la ruta `/nfc/<nfc_key>`. Si se escanea una tarjeta no registrada, el sistema despliega una interfaz interactiva de asignación para vincularla a una obra existente o nueva en segundos.
+* **🎵 Música Hi-Fi (Audiophile Edition - `/category/music`)**:
+  * **Motor Web Audio API en Tiempo Real**: Análisis de frecuencias a 60 FPS con extracción de bajos, medios y agudos.
+  * **5 Modos de Visualización Reactivos**:
+    * **Espectro Radial 360°**: Rayos concéntricos giratorios alrededor del disco de vinilo.
+    * **Vórtice de Partículas Cósmicas**: 130 partículas orbitando y emanando con halos en cada beat y constelaciones reactivas a los agudos.
+    * **Onda Líquida**: 3 capas fluidas de ondas con gradientes de cian, violeta y rosa moduladas por frecuencias.
+    * **Barras Hi-Fi de Estudio**: 48 bandas ecualizadoras de alta resolución con picos flotantes (*peak hold caps*) y descenso gravitacional.
+    * **Aurora Glow**: 4 orbes de plasma en órbita concéntrica cuyos radios, intensidades y opacidades siguen el ritmo.
+  * **Modo Inmersivo de Estudio (Vista Ampliada)**: Vinilo holográfico giratorio con sincronización de estado, atajos de teclado (`M` para alternar modos, `Espacio` para pausa/play, `ESC` para salir) y herramienta de volumen interactiva bidireccional.
+  * **Navegación Dinámica**: Filtrado en vivo por Álbumes, Artistas y Canciones locales sin recargar la página.
+* **📚 Soporte Multiformato y Galería Interactiva**:
+  * **Mangas y Cómics**: Lector web optimizado para lectura en tira vertical continua (webtoons/mangas/cómics). Extrae y cachea páginas de archivos `.cbr` y `.cbz` mediante utilidades del sistema (`unar` / `7z`).
+  * **Películas y Series / Animes**: Reproductor de video HTML5 integrado para formatos `.mp4`, `.mkv`, `.avi`, `.mov`, `.webm`, etc., con selector de episodios en series.
+  * **Libros Digitales**: Lector y visor de documentos PDF y EPUB.
+* **🗂️ Gestión de Sagas y Portadas Inteligentes**:
+  * Agrupación automática por sagas/colecciones (mostrando 1 sola tarjeta consolidada en la galería).
+  * Portada fija por saga (`is_saga_cover`) o **rotación aleatoria de portadas** (`saga_random_cover`) en cada visita.
+  * Control de visibilidad en la galería principal (`show_in_gallery`).
+* **🔄 Sincronización Automática de Biblioteca (`/admin/library-sync`)**:
+  * Escaneo directo de la carpeta multimedia del servidor (`/data/media` o personalizada).
+  * Integración nativa con **Radarr**, **Sonarr** y **Lidarr**: descarga automática de sinopsis oficiales, portadas/pósters remotos en alta calidad, géneros y artistas.
+  * Importación con 1 solo clic y sincronización masiva de metadatos.
+* **📂 Importación Flexible**:
+  * Formulario individual en el panel de control.
+  * **Carga Masiva (Batch Upload)** asíncrona con barra de progreso interactiva.
+  * **Importación por Carpetas (Folder Import)** para procesar librerías locales completas.
+* **🛡️ Panel de Administración Seguro**:
+  * Control de acceso por contraseña de administración.
+  * Edición rápida de metadatos, sustitución de portadas y archivos, y cambio de clave NFC.
+  * Liberación automática de espacio en disco al eliminar obras y limpiar la caché.
+  * Cambio de contraseña administrativa en tiempo real.
+* **💾 Monitoreo de Almacenamiento**: Estadísticas en tiempo real sobre uso total, ocupado, libre y porcentaje del disco.
 
 ---
 
@@ -40,23 +60,31 @@ A continuación se muestran algunas de las interfaces del sistema:
 
 ```text
 TapBox/
-├── app.py                  # Servidor principal Flask y lógica del backend
-├── books.json              # Base de datos local de obras en formato JSON
-├── config.json             # Configuración del sistema y credenciales administrativas
-├── notas.md                # Notas rápidas de comandos, accesos y estructura
-├── Capturas/               # Capturas de pantalla e imágenes de demostración
+├── app.py                  # Servidor principal Flask y backend integrado
+├── catalog.json            # Base de datos local principal en formato JSON
+├── books.json              # Base de datos legacy (migración automática a catalog.json)
+├── config.json             # Configuración del sistema y credenciales
+├── config.json.example     # Plantilla de configuración
+├── catalog.json.example    # Plantilla de base de datos de ejemplo
+├── notas.md                # Notas de servidores, comandos, credenciales y puertos
+├── Capturas/               # Capturas de pantalla del sistema
 ├── static/
-│   ├── covers/             # Portadas de las obras (formato cover_*.jpg)
-│   ├── uploads/            # Archivos fuente de las obras (doc_*.cbr, doc_*.pdf, etc.)
-│   └── cache/              # Directorio temporal de descompresión de archivos CBR/CBZ
+│   ├── covers/             # Portadas de las obras (cover_*.jpg / cover_*.svg)
+│   ├── uploads/            # Archivos fuente (doc_*.cbr, videos, media_*/, etc.)
+│   └── cache/              # Caché de imágenes descomprimidas de CBR/CBZ
 └── templates/
-    ├── admin.html          # Vista del panel de administración
-    ├── batch_upload.html   # Vista para subidas múltiples asíncronas
-    ├── gallery.html        # Galería para explorar todas las obras registradas
-    ├── reader.html         # Lector web en tira continua
-    ├── book.html           # Vista pública de la obra tras escanear el NFC
+    ├── index.html          # Galería principal y resumen por categorías
+    ├── category.html       # Exploración paginada por categoría (Mangas, Películas, Series, etc.)
+    ├── music.html          # Reproductor Hi-Fi Audiophile Edition con visualizadores reactivos
+    ├── book.html           # Vista pública detallada tras escanear tarjeta NFC
+    ├── reader.html         # Lector web en tira continua para cómics y mangas
+    ├── player.html         # Reproductor de video interactivo para películas y series
+    ├── admin.html          # Panel de administración principal y edición
+    ├── batch_upload.html   # Carga masiva asíncrona por lote
+    ├── folder_import.html  # Importación masiva desde carpetas locales
+    ├── library_sync.html   # Sincronización e importación desde biblioteca (/data/media + *arr)
     ├── login.html          # Autenticación del administrador
-    └── not_found.html      # Página de ayuda al escanear un NFC no asignado
+    └── not_found.html      # Gestión de llaves NFC no asignadas
 ```
 
 ---
@@ -64,83 +92,103 @@ TapBox/
 ## 🛠️ Requisitos e Instalación
 
 ### 1. Requisitos del Sistema
-Para que el lector web procese correctamente los archivos `.cbr` (cómics comprimidos en RAR), el sistema operativo debe tener instalada alguna de las siguientes utilidades de extracción:
-*   `unar` (Recomendado)
-*   `p7zip-full` / `7zip`
+Para la descompresión en tiempo real de cómics (`.cbr` / `.cbz`), instala las utilidades de extracción en tu sistema operativo:
 
-#### En sistemas Debian/Ubuntu/Raspberry Pi OS:
+#### En Debian / Ubuntu / Raspberry Pi OS:
 ```bash
 sudo apt update
 sudo apt install unar p7zip-full python3 python3-pip
 ```
 
 ### 2. Instalación de Dependencias de Python
-Instala Flask y sus dependencias necesarias:
+Instala Flask y sus librerías requeridas:
 ```bash
 pip install Flask
 ```
 
-### 3. Ejecutar el Servidor
-Inicia la aplicación de Flask:
-```bash
-python app.py
-```
-Por defecto, el servidor se iniciará en `http://0.0.0.0:5000/`, lo que permite acceder a él desde cualquier dispositivo en la misma red local.
-
----
-
-## 🖥️ Despliegue en Raspberry Pi Zero
-
-Si estás utilizando una Raspberry Pi Zero en tu red local (por ejemplo, con la ip del dispositivo):
-
-1.  Conéctate por SSH:
-    ```bash
-    ssh User
-    # Contraseña por defecto: ************
-    ```
-2.  Accede a la carpeta del proyecto:
-    ```bash
-    cd ~/booknfc
-    ```
-3.  Ejecuta o edita los archivos directamente si es necesario.
-
----
-
-## ⚙️ Configuración y Base de Datos
-
-El sistema se basa en archivos JSON planos. Para proteger tu información, estos archivos están excluidos del control de versiones (git). Para iniciar el proyecto, debes crear copias locales a partir de los archivos de ejemplo proporcionados:
-
-### 1. `config.json`
-Almacena la contraseña de administrador. Crea tu copia local ejecutando:
+### 3. Configuración Inicial
+Crea tu archivo local de configuración desde la plantilla:
 ```bash
 cp config.json.example config.json
 ```
-Contenido por defecto:
+*(Opcional)* Si tienes una base de datos previa `books.json`, el sistema la migrará automáticamente a `catalog.json` al iniciar.
+
+### 4. Ejecutar el Servidor
+Inicia la aplicación:
+```bash
+python app.py
+```
+El servidor se ejecutará por defecto en `http://0.0.0.0:5000/`, accesible desde cualquier dispositivo en la red local.
+
+---
+
+## 🖥️ Despliegue en Servidor Local (IP Actual: 192.168.0.11)
+
+Para conectarte al servidor local vía SSH:
+
+```bash
+ssh joanml@192.168.0.11
+# Contraseña: joanml
+cd ~/tapbox
+```
+
+### Gestión del Servicio en Ubuntu:
+```bash
+# Ver estado del servicio
+sudo systemctl status tapbox
+
+# Reiniciar servicio
+sudo systemctl restart tapbox
+
+# Ver registros en vivo
+journalctl -u tapbox -f
+```
+
+---
+
+## ⚙️ Configuración de Archivos JSON
+
+El sistema utiliza archivos JSON excluidos de Git para proteger la información privada:
+
+### 1. `config.json`
+Almacena la contraseña administrativa, la ruta de la biblioteca multimedia y las conexiones a los servicios de descarga/metadatos:
 ```json
 {
-    "admin_pass": "admin123"
+    "admin_pass": "admin123",
+    "media_root": "/data/media",
+    "radarr_url": "http://127.0.0.1:7878",
+    "radarr_api_key": "TU_API_KEY",
+    "sonarr_url": "http://127.0.0.1:8989",
+    "sonarr_api_key": "TU_API_KEY",
+    "lidarr_url": "http://127.0.0.1:8686",
+    "lidarr_api_key": "TU_API_KEY"
 }
 ```
 
-### 2. `books.json`
-Almacena la colección de libros. Crea tu copia local ejecutando:
-```bash
-cp books.json.example books.json
-```
-Formato de cada obra en el archivo:
+### 2. `catalog.json`
+Estructura de registro de una obra en el catálogo:
 ```json
 [
     {
         "id": "3c6d150e",
         "title": "Nombre de la Obra",
+        "type": "manga",
+        "author": "Nombre del Autor / Estudio",
+        "saga": "Nombre de la Saga",
+        "category": "Acción, Fantasía",
         "nfc_key": "NFC-QZP519",
-        "synopsis": "Sinopsis de la obra o descripción breve.",
+        "synopsis": "Sinopsis o descripción de la obra.",
         "cover": "cover_3c6d150e.jpg",
-        "file": "doc_3c6d150e.cbr"
+        "file": "doc_3c6d150e.cbr",
+        "show_in_gallery": true,
+        "is_saga_cover": false,
+        "saga_random_cover": true
     }
 ]
 ```
-*   `id`: Identificador único de 8 caracteres.
-*   `nfc_key`: Clave NFC asociada físicamente a la tarjeta.
-*   `cover`: Nombre del archivo de portada guardado en `static/covers/`.
-*   `file`: Nombre del archivo de documento guardado en `static/uploads/`.
+
+* `id`: Identificador único de 8 caracteres.
+* `type`: Tipo de contenido (`book`, `manga`, `movie`, `series`, `anime`, `music`).
+* `nfc_key`: Clave vinculada a la etiqueta NFC física.
+* `cover`: Portada en `static/covers/`.
+* `file`: Archivo principal o lista de archivos de episodios en `static/uploads/` o ruta de biblioteca.

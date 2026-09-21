@@ -199,13 +199,71 @@
     <div class="container">
         <div class="header-bar">
             <h2><i class="fa-solid fa-layer-group"></i> Carga Masiva de Obras</h2>
-            <a href="/admin" class="btn"><i class="fa-solid fa-arrow-left"></i> Volver al Admin</a>
+            <div style="display: flex; gap: 10px;">
+                <a href="/admin/folder-import" class="btn btn-primary"><i class="fa-solid fa-folder-open"></i> Importar Carpeta</a>
+                <a href="/admin" class="btn"><i class="fa-solid fa-arrow-left"></i> Volver al Admin</a>
+            </div>
         </div>
 
         <form id="batchForm" enctype="multipart/form-data">
+            <!-- CONFIGURACIÓN GENERAL DEL LOTE -->
+            <div class="card" style="margin-bottom: 25px; border: 1px solid var(--accent-cyan); background: var(--surface); padding: 20px; border-radius: 12px;">
+                <div class="card-title" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-gears" style="color: var(--accent-cyan);"></i>
+                    <span>Configuración General del Lote (Igual para todas las obras)</span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tipo de Contenido *</label>
+                        <select id="globalType" required onchange="updateAllCardFileInputs(this.value)" style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 6px; font-size: 0.9em; width: 100%;">
+                            <option value="book" selected>Libro</option>
+                            <option value="manga">Manga</option>
+                            <option value="movie">Película</option>
+                            <option value="series">Serie</option>
+                            <option value="music">Música</option>
+                            <option value="anime">Anime</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Autor / Creador *</label>
+                        <input type="text" id="globalAuthor" required placeholder="Ej: Stephen King" style="width: 100%;">
+                    </div>
+                    <div class="form-group">
+                        <label>Saga / Grupo / Álbum *</label>
+                        <input type="text" id="globalSaga" required placeholder="Ej: La Torre Oscura" style="width: 100%;">
+                    </div>
+                    <div class="form-group full">
+                        <label>Categorías / Géneros (Selección Múltiple: Ctrl + Click) *</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <select id="globalCategory" multiple required style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9em; height: 120px; width: 100%;">
+                                <option value="Terror">Terror</option>
+                                <option value="Aventura">Aventura</option>
+                                <option value="Acción">Acción</option>
+                                <option value="Comedia">Comedia</option>
+                                <option value="Drama">Drama</option>
+                                <option value="Fantasía">Fantasía</option>
+                                <option value="Suspenso">Suspenso</option>
+                                <option value="Ciencia Ficción">Ciencia Ficción</option>
+                                <option value="Música">Música</option>
+                                <option value="Documental">Documental</option>
+                                <option value="Ingeniería">Ingeniería</option>
+                                <option value="Historia">Historia</option>
+                                <option value="Infantil">Infantil</option>
+                                <option value="Romance">Romance</option>
+                            </select>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <label style="font-size: 0.85em; color: var(--text-muted);">¿Otra Categoría Manual?</label>
+                                <input type="text" id="globalCustomCategory" placeholder="Ej: Deportes, Biografía..." style="width: 100%;">
+                                <small style="font-size: 0.75em; color: var(--text-muted); line-height: 1.3;">Para seleccionar varios, mantén presionada la tecla <strong>Ctrl</strong> (o <strong>Cmd</strong> en Mac) mientras haces clic.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="cardsContainer">
                 <!-- Tarjeta Inicial -->
-                <div class="book-card">
+                <div class="book-card" id="card_0">
                     <div class="book-card-header">
                         <span><strong>Obra #1</strong></span>
                         <button type="button" class="btn-remove" onclick="removeCard(this)"><i
@@ -214,31 +272,34 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Título de la obra *</label>
-                            <input type="text" name="title[]" required placeholder="Ej: Coraline">
+                            <input type="text" name="title[]" required placeholder="Ej: Bohemian Rhapsody">
                         </div>
                         <div class="form-group">
                             <label>Llave NFC (Opcional)</label>
                             <input type="text" name="nfc_key[]" placeholder="Dejar en blanco para autogenerar">
                         </div>
                         <div class="form-group">
-                            <label>Portada (Imagen) *</label>
-                            <input type="file" name="cover[]" accept="image/*" required>
+                            <label class="cover-label">Portada (Imagen)</label>
+                            <input type="file" name="cover[]" accept="image/*" onchange="previewManualCover(this, 0)">
+                            <div class="cover-auto-preview" id="coverPreview_0" style="margin-top: 6px; display: none; align-items: center; gap: 8px;">
+                                <img src="" id="coverImg_0" style="width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--accent-cyan);">
+                                <span style="font-size: 0.78em; color: var(--accent-cyan);" id="coverStatus_0"><i class="fa-solid fa-wand-magic-sparkles"></i> Portada incrustada</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Archivo de la Obra (.cbr, .cbz, .pdf, .epub) *</label>
-                            <input type="file" name="file[]" accept=".cbr,.cbz,.pdf,.epub,.rar,.zip" required>
+                        <div class="form-group full">
+                            <label class="file-label">Archivo de la Obra *</label>
+                            <input type="file" name="file_0[]" required onchange="handleAudioSelect(this, 0)">
                         </div>
                         <div class="form-group full">
                             <label>Sinopsis / Descripción</label>
-                            <textarea name="synopsis[]" rows="2" placeholder="Breve resumen de la obra..."></textarea>
+                            <textarea name="synopsis[]" rows="2" placeholder="Breve resumen o notas de la obra..."></textarea>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-top: 20px;">
-                <button type="button" class="btn" onclick="addCard()"><i class="fa-solid fa-plus"></i> Añadir Otra
-                    Obra</button>
+            <div style="display: flex; gap: 12px; margin-top: 25px;">
+                <button type="button" class="btn" onclick="addCard()"><i class="fa-solid fa-plus"></i> Añadir Otra Obra</button>
                 <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-cloud-arrow-up"></i>
                     Iniciar Subida Masiva</button>
             </div>
@@ -249,7 +310,7 @@
     <div class="progress-modal" id="progressModal">
         <div class="progress-box">
             <i class="fa-solid fa-cloud-arrow-up fa-3x" style="color: var(--accent-cyan);"></i>
-            <h3 style="margin-top: 15px;">Subiendo Archivos a la MicroSD...</h3>
+            <h3 style="margin-top: 15px;">Subiendo Archivos al Servidor...</h3>
 
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progressBarFill"></div>
@@ -265,11 +326,159 @@
     <script>
         let cardCount = 1;
 
+        function reindexCards() {
+            const cards = document.querySelectorAll('.book-card');
+            cards.forEach((card, idx) => {
+                card.id = `card_${idx}`;
+                card.querySelector('.book-card-header strong').innerText = `Obra #${idx + 1}`;
+                
+                const fileInput = card.querySelector('input[type="file"]:not([name="cover[]"])');
+                if (fileInput) {
+                    fileInput.name = `file_${idx}[]`;
+                    fileInput.setAttribute('onchange', `handleAudioSelect(this, ${idx})`);
+                }
+
+                const coverInput = card.querySelector('input[name="cover[]"]');
+                if (coverInput) {
+                    coverInput.setAttribute('onchange', `previewManualCover(this, ${idx})`);
+                }
+
+                const coverPrev = card.querySelector('.cover-auto-preview');
+                if (coverPrev) coverPrev.id = `coverPreview_${idx}`;
+                const coverImg = card.querySelector('.cover-auto-preview img');
+                if (coverImg) coverImg.id = `coverImg_${idx}`;
+                const coverStatus = card.querySelector('.cover-auto-preview span');
+                if (coverStatus) coverStatus.id = `coverStatus_${idx}`;
+
+                updateFileInput(idx);
+            });
+            cardCount = cards.length;
+        }
+
+        function updateFileInput(idx) {
+            const card = document.querySelectorAll('.book-card')[idx];
+            if (!card) return;
+            const fileInput = card.querySelector('input[type="file"]:not([name="cover[]"])');
+            const fileLabel = card.querySelector('.file-label');
+            const coverLabel = card.querySelector('.cover-label');
+            const coverInput = card.querySelector('input[name="cover[]"]');
+            const val = document.getElementById('globalType').value;
+            
+            if (fileInput && fileLabel) {
+                if (val === 'book' || val === 'manga') {
+                    fileInput.accept = ".cbr,.cbz,.pdf,.epub,.rar,.zip";
+                    fileInput.multiple = false;
+                    fileLabel.innerText = val === 'manga' ? "Archivo de Manga (.cbr, .cbz, .pdf, .epub) *" : "Archivo (.cbr, .cbz, .pdf, .epub) *";
+                    if (coverLabel) coverLabel.innerText = "Portada (Imagen) *";
+                    if (coverInput) coverInput.required = true;
+                } else if (val === 'movie') {
+                    fileInput.accept = "video/*,.mp4,.mkv,.webm,.avi";
+                    fileInput.multiple = false;
+                    fileLabel.innerText = "Archivo de Video (.mp4, .webm) *";
+                    if (coverLabel) coverLabel.innerText = "Portada (Imagen) *";
+                    if (coverInput) coverInput.required = true;
+                } else if (val === 'series' || val === 'anime') {
+                    fileInput.accept = "video/*,.mp4,.mkv,.webm,.avi";
+                    fileInput.multiple = true;
+                    fileLabel.innerText = val === 'anime' ? "Episodios de Anime (Múltiple) *" : "Capítulos de la Serie (Múltiple) *";
+                    if (coverLabel) coverLabel.innerText = "Portada (Imagen) *";
+                    if (coverInput) coverInput.required = true;
+                } else if (val === 'music') {
+                    fileInput.accept = "audio/*,.opus,.mp3,.wav,.flac,.ogg,.m4a,.aac";
+                    fileInput.multiple = true;
+                    fileLabel.innerText = "Pistas de Audio (.opus, .mp3, .flac, etc.) *";
+                    if (coverLabel) coverLabel.innerText = "Portada (Opcional si el audio tiene carátula)";
+                    if (coverInput) coverInput.required = false;
+                }
+            }
+        }
+
+        function updateAllCardFileInputs(type) {
+            const cards = document.querySelectorAll('.book-card');
+            cards.forEach((card, idx) => {
+                updateFileInput(idx);
+            });
+        }
+
+        function previewManualCover(input, idx) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const prev = document.getElementById(`coverPreview_${idx}`);
+                    const img = document.getElementById(`coverImg_${idx}`);
+                    const status = document.getElementById(`coverStatus_${idx}`);
+                    if (prev && img) {
+                        img.src = e.target.result;
+                        if (status) status.innerHTML = '<i class="fa-solid fa-image"></i> Portada seleccionada';
+                        prev.style.display = 'inline-flex';
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function handleAudioSelect(input, idx) {
+            const val = document.getElementById('globalType').value;
+            if (val !== 'music' || !input.files || input.files.length === 0) return;
+
+            const firstFile = input.files[0];
+            const ext = firstFile.name.split('.').pop().toLowerCase();
+            if (!['opus', 'mp3', 'flac', 'ogg', 'm4a', 'aac', 'wav'].includes(ext)) return;
+
+            const card = document.querySelectorAll('.book-card')[idx];
+            const titleInput = card ? card.querySelector('input[name="title[]"]') : null;
+            const globalAuthor = document.getElementById('globalAuthor');
+            const globalSaga = document.getElementById('globalSaga');
+
+            // Autocompletar título con nombre de archivo limpio si está vacío
+            if (titleInput && (!titleInput.value || titleInput.value.trim() === '')) {
+                let cleanName = firstFile.name.replace(/\.[^/.]+$/, '');
+                cleanName = cleanName.replace(/【[^】]*】/g, '').replace(/\[[^\]]*\]/g, '').replace(/^\d+[\s\.\-_]+/, '').trim();
+                titleInput.value = cleanName || firstFile.name;
+            }
+
+            // Consultar endpoint para extraer portada incrustada y metadatos (Opus, MP3, etc.)
+            const fd = new FormData();
+            fd.append('file', firstFile);
+
+            fetch('/api/extract-audio-metadata', {
+                method: 'POST',
+                body: fd
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.title && titleInput && (!titleInput.value || titleInput.value.trim() === firstFile.name)) {
+                        titleInput.value = data.title;
+                    }
+                    if (data.artist && globalAuthor && !globalAuthor.value.trim()) {
+                        globalAuthor.value = data.artist;
+                    }
+                    if (data.album && globalSaga && !globalSaga.value.trim()) {
+                        globalSaga.value = data.album;
+                    }
+                    if (data.has_cover && data.cover_data_url) {
+                        const prev = document.getElementById(`coverPreview_${idx}`);
+                        const img = document.getElementById(`coverImg_${idx}`);
+                        const status = document.getElementById(`coverStatus_${idx}`);
+                        if (prev && img) {
+                            img.src = data.cover_data_url;
+                            if (status) status.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> Portada incrustada (${ext.toUpperCase()})`;
+                            prev.style.display = 'inline-flex';
+                        }
+                    }
+                }
+            })
+            .catch(err => console.log("Extracción de metadatos opcional:", err));
+        }
+
         function addCard() {
-            cardCount++;
             const container = document.getElementById('cardsContainer');
+            const idx = cardCount;
+            cardCount++;
+            
             const cardHtml = `
-                <div class="book-card">
+                <div class="book-card" id="card_${idx}">
                     <div class="book-card-header">
                         <span><strong>Obra #${cardCount}</strong></span>
                         <button type="button" class="btn-remove" onclick="removeCard(this)"><i class="fa-solid fa-trash"></i></button>
@@ -277,46 +486,113 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Título de la obra *</label>
-                            <input type="text" name="title[]" required placeholder="Ej: Batman Año Uno">
+                            <input type="text" name="title[]" required placeholder="Ej: Pista Musical">
                         </div>
                         <div class="form-group">
                             <label>Llave NFC (Opcional)</label>
                             <input type="text" name="nfc_key[]" placeholder="Dejar en blanco para autogenerar">
                         </div>
                         <div class="form-group">
-                            <label>Portada (Imagen) *</label>
-                            <input type="file" name="cover[]" accept="image/*" required>
+                            <label class="cover-label">Portada (Imagen)</label>
+                            <input type="file" name="cover[]" accept="image/*" onchange="previewManualCover(this, ${idx})">
+                            <div class="cover-auto-preview" id="coverPreview_${idx}" style="margin-top: 6px; display: none; align-items: center; gap: 8px;">
+                                <img src="" id="coverImg_${idx}" style="width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--accent-cyan);">
+                                <span style="font-size: 0.78em; color: var(--accent-cyan);" id="coverStatus_${idx}"><i class="fa-solid fa-wand-magic-sparkles"></i> Portada incrustada</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Archivo de la Obra (.cbr, .cbz, .pdf, .epub) *</label>
-                            <input type="file" name="file[]" accept=".cbr,.cbz,.pdf,.epub,.rar,.zip" required>
+                        <div class="form-group full">
+                            <label class="file-label">Archivo de la Obra *</label>
+                            <input type="file" name="file_${idx}[]" required onchange="handleAudioSelect(this, ${idx})">
                         </div>
                         <div class="form-group full">
                             <label>Sinopsis / Descripción</label>
-                            <textarea name="synopsis[]" rows="2" placeholder="Breve resumen de la obra..."></textarea>
+                            <textarea name="synopsis[]" rows="2" placeholder="Breve resumen o notas..."></textarea>
                         </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', cardHtml);
+            reindexCards();
         }
 
         function removeCard(btn) {
             const cards = document.getElementsByClassName('book-card');
             if (cards.length > 1) {
                 btn.closest('.book-card').remove();
+                reindexCards();
             } else {
                 alert("Debes mantener al menos una obra en el formulario.");
             }
         }
 
-        // CONTROLADOR DE SUBIDA CON PROGRESO RECURSIVO
+        // CONTROLADOR DE SUBIDA CON PROGRESO RECURSIVO Y GENERALIZACIÓN DE LOTES
         document.getElementById('batchForm').onsubmit = function (e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
-            const xhr = new XMLHttpRequest();
+            // Leer valores globales compartidos
+            const type = document.getElementById('globalType').value;
+            const author = document.getElementById('globalAuthor').value.trim();
+            const saga = document.getElementById('globalSaga').value.trim();
+            
+            // Procesar categorías de selección múltiple
+            const selectedCategories = Array.from(document.getElementById('globalCategory').selectedOptions).map(opt => opt.value);
+            const customCat = document.getElementById('globalCustomCategory').value.trim();
+            if (customCat) {
+                customCat.split(',').forEach(c => {
+                    const cleanC = c.trim();
+                    if (cleanC && !selectedCategories.includes(cleanC)) {
+                        selectedCategories.push(cleanC);
+                    }
+                });
+            }
+            const categoryStr = selectedCategories.join(', ');
 
+            // Títulos, portadas, nfc, y sinopsis individuales
+            const titles = Array.from(document.getElementsByName('title[]')).map(inp => inp.value.trim());
+            const nfcKeys = Array.from(document.getElementsByName('nfc_key[]')).map(inp => inp.value.trim());
+            const synopses = Array.from(document.getElementsByName('synopsis[]')).map(inp => inp.value.trim());
+            const covers = document.getElementsByName('cover[]');
+
+            if (titles.length === 0) {
+                alert("Debes agregar al menos una obra.");
+                return;
+            }
+
+            // Construir el FormData dinámicamente mapeándolo al esquema esperado por el backend
+            const formData = new FormData();
+            
+            for (let i = 0; i < titles.length; i++) {
+                formData.append('title[]', titles[i]);
+                formData.append('nfc_key[]', nfcKeys[i]);
+                formData.append('synopsis[]', synopses[i] || "Sin sinopsis disponible.");
+                
+                // Campos globales aplicados a cada item
+                formData.append('type[]', type);
+                formData.append('author[]', author);
+                formData.append('saga[]', saga);
+                formData.append('category[]', categoryStr);
+                
+                // Portada
+                if (covers[i] && covers[i].files && covers[i].files[0]) {
+                    formData.append('cover[]', covers[i].files[0]);
+                } else if (type !== 'music') {
+                    // Para otros tipos si no hay portada, enviar vacío o alertar
+                    // formData.append('cover[]', null);
+                }
+
+                // Archivo de contenido de la obra
+                const fileInput = document.getElementsByName(`file_${i}[]`)[0];
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    for (let f = 0; f < fileInput.files.length; f++) {
+                        formData.append(`file_${i}[]`, fileInput.files[f]);
+                    }
+                } else {
+                    alert(`Falta el archivo de contenido para la Obra #${i+1}`);
+                    return;
+                }
+            }
+
+            const xhr = new XMLHttpRequest();
             const modal = document.getElementById('progressModal');
             const barFill = document.getElementById('progressBarFill');
             const percentText = document.getElementById('progressPercent');
@@ -356,6 +632,9 @@
             xhr.open('POST', '/admin/batch-upload', true);
             xhr.send(formData);
         };
+
+        // Inicializar restricciones en la carga de la página
+        updateAllCardFileInputs();
     </script>
 </body>
 
