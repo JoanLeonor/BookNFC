@@ -100,7 +100,9 @@ def detect_game_core(filename):
     elif ext in ['.psx', '.iso', '.cue', '.chd', '.pbp']:
         return 'psx', 'Sony PlayStation'
     elif ext == '.zip':
-        if 'gba' in fn:
+        if 'psx' in fn or 'ps1' in fn or 'playstation' in fn or 'capcom' in fn or 'marvel' in fn:
+            return 'psx', 'Sony PlayStation'
+        elif 'gba' in fn:
             return 'gba', 'Game Boy Advance'
         elif 'gbc' in fn:
             return 'gbc', 'Game Boy Color'
@@ -112,6 +114,31 @@ def detect_game_core(filename):
             return 'n64', 'Nintendo 64'
         elif 'md' in fn or 'genesis' in fn or 'megadrive' in fn or 'sega' in fn:
             return 'segaMD', 'Sega Genesis'
+        
+        # Analizar contenidos del ZIP si existe en disco
+        try:
+            resolved = resolve_media_file_path(filename)
+            if resolved and os.path.exists(resolved):
+                with zipfile.ZipFile(resolved, 'r') as z:
+                    names = [n.lower() for n in z.namelist()]
+                    if any(n.endswith(('.cue', '.bin', '.iso', '.psx', '.pbp', '.chd')) for n in names):
+                        return 'psx', 'Sony PlayStation'
+                    elif any(n.endswith(('.gba',)) for n in names):
+                        return 'gba', 'Game Boy Advance'
+                    elif any(n.endswith(('.gbc',)) for n in names):
+                        return 'gbc', 'Game Boy Color'
+                    elif any(n.endswith(('.gb',)) for n in names):
+                        return 'gb', 'Game Boy'
+                    elif any(n.endswith(('.nes',)) for n in names):
+                        return 'nes', 'Nintendo NES'
+                    elif any(n.endswith(('.n64', '.z64', '.v64')) for n in names):
+                        return 'n64', 'Nintendo 64'
+                    elif any(n.endswith(('.sfc', '.smc')) for n in names):
+                        return 'snes', 'Super Nintendo'
+                    elif any(n.endswith(('.md', '.gen', '.smd')) for n in names):
+                        return 'segaMD', 'Sega Genesis'
+        except Exception:
+            pass
         return 'snes', 'Super Nintendo (ZIP)'
     
     return 'snes', 'Retro Console'
@@ -2219,12 +2246,39 @@ def upload():
         unique_id = str(uuid.uuid4())[:8]
         cover_filename = save_media_cover(unique_id, cover_file, uploaded_files)
 
-        if media_type in ['book', 'manga', 'movie']:
+        if media_type in ['book', 'manga', 'movie', 'game']:
             # Archivo único
             first_file = uploaded_files[0]
             ext_file = os.path.splitext(first_file.filename)[1]
             book_filename = f"doc_{unique_id}{ext_file}"
-            first_file.save(os.path.join(app.config['UPLOAD_FOLDER'], book_filename))
+            saved_full_path = os.path.join(app.config['UPLOAD_FOLDER'], book_filename)
+            first_file.save(saved_full_path)
+
+            # Si es un juego y se subió en .rar o .7z, descomprimirlo automáticamente a su formato ROM nativo
+            if media_type == 'game' and ext_file.lower() in ['.rar', '.7z']:
+                try:
+                    target_dir = app.config['UPLOAD_FOLDER']
+                    if shutil.which('unar'):
+                        subprocess.run(['unar', '-f', '-o', target_dir, saved_full_path], capture_output=True, timeout=25)
+                    elif shutil.which('7z'):
+                        subprocess.run(['7z', 'x', '-y', f'-o{target_dir}', saved_full_path], capture_output=True, timeout=25)
+                    
+                    # Buscar el archivo ROM resultante
+                    for f in os.listdir(target_dir):
+                        f_low = f.lower()
+                        if f_low.endswith(('.sfc', '.smc', '.gba', '.gb', '.gbc', '.nes', '.n64', '.z64', '.md', '.nds', '.bin', '.iso')) and f != book_filename:
+                            rom_ext = os.path.splitext(f)[1]
+                            new_rom_name = f"doc_{unique_id}{rom_ext}"
+                            shutil.move(os.path.join(target_dir, f), os.path.join(target_dir, new_rom_name))
+                            try:
+                                os.remove(saved_full_path)
+                            except Exception:
+                                pass
+                            book_filename = new_rom_name
+                            break
+                except Exception as e:
+                    print("Error extrayendo ROM desde RAR:", e)
+
             file_val = book_filename
         else:
             saved_filenames = []
