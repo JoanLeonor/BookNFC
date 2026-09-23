@@ -8,28 +8,32 @@ El proyecto está diseñado y optimizado para ser extremadamente ligero y eficie
 
 ## 📸 Capturas de Pantalla
 
-| Galería Principal | Estación de Música Hi-Fi | Vista de Obra (NFC) |
+| Galería Principal | Estación de Música Hi-Fi | Emulador de Juegos Retro |
 |:---:|:---:|:---:|
-| ![Galería Principal](Capturas/pantalla%20gallery.png) | ![Música Hi-Fi](Capturas/pantalla%20music.png) | ![Vista Obra](Capturas/pantalla%20nfc%20A.png) |
+| ![Galería Principal](Capturas/pantalla%20gallery.png) | ![Música Hi-Fi](Capturas/pantalla%20music.png) | ![Emulador Retro](Capturas/pantalla%20game.png) |
 
-| Panel de Administración | Importador por Carpetas | Carga Masiva (Batch) |
+| Vista de Obra (NFC) | Panel de Administración | Importador por Carpetas |
 |:---:|:---:|:---:|
-| ![Panel Admin](Capturas/pantalla%20admin.png) | ![Importador](Capturas/pantalla%20folder%20import.png) | ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) |
+| ![Vista Obra](Capturas/pantalla%20nfc%20A.png) | ![Panel Admin](Capturas/pantalla%20admin.png) | ![Importador](Capturas/pantalla%20folder%20import.png) |
 
-| Gestor de Archivos Multimedia | Conversor MP4 en Tiempo Real | Limpiador y Huérfanos |
+| Carga Masiva (Batch) | Gestor de Archivos Multimedia | Conversor MP4 en Tiempo Real |
 |:---:|:---:|:---:|
-| ![Archivos](Capturas/pantalla%20files.png) | ![Conversor](Capturas/pantalla%20converter.png) | ![Limpiador](Capturas/pantalla%20cleaner.png) |
+| ![Carga Masiva](Capturas/pantalla%20carga%20masiva.png) | ![Archivos](Capturas/pantalla%20files.png) | ![Conversor](Capturas/pantalla%20converter.png) |
 
-| Login de Administración | Error NFC No Asignado |
-|:---:|:---:|
-| ![Login](Capturas/pantalla%20login.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
-
+| Limpiador y Huérfanos | Login de Administración | Error NFC No Asignado |
+|:---:|:---:|:---:|
+| ![Limpiador](Capturas/pantalla%20cleaner.png) | ![Login](Capturas/pantalla%20login.png) | ![NFC No Asignado](Capturas/pantalla%20nfc%20fail.png) |
 
 ---
 
 ## ✨ Características Principales
 
 * **🔗 Integración NFC Dinámica**: Mapeo inteligente de tarjetas físicas a través de la ruta `/nfc/<nfc_key>`. Si se escanea una tarjeta no registrada, el sistema despliega una interfaz interactiva de asignación para vincularla a una obra existente o nueva en segundos.
+* **🎮 Emulador de Videojuegos Retro Web (EmulatorJS / WebAssembly - `/category/game`)**:
+  * **Emulación Directa en Navegador a 60 FPS**: Ejecución de ROMs sin requerir emuladores externos ni sobrecargar el procesador del servidor.
+  * **Soporte Multiconsola Automático**: Detección inteligente de núcleos para **Super Nintendo (SNES)**, **Game Boy Advance (GBA)**, **Game Boy Color (GBC)**, **Game Boy (GB)**, **Nintendo Entertainment System (NES)**, **Nintendo 64 (N64)**, **Sega Genesis / Mega Drive (MD)**, **Nintendo DS (NDS)** y **PlayStation (PS1)**.
+  * **Controles Universales**: Soporte nativo para mandos **USB y Bluetooth (Xbox, DualShock/DualSense)**, controles táctiles en pantalla para móviles/tablets y teclado configurable.
+  * **Gestión de Partidas (Save States)**: Guardado y carga de partidas en cualquier punto de la aventura.
 * **🎵 Música Hi-Fi (Audiophile Edition - `/category/music`)**:
   * **Motor Web Audio API en Tiempo Real**: Análisis de frecuencias a 60 FPS con extracción de bajos, medios y agudos.
   * **5 Modos de Visualización Reactivos**:
@@ -85,6 +89,7 @@ TapBox/
     ├── index.html          # Galería principal y resumen por categorías
     ├── category.html       # Exploración paginada por categoría (Mangas, Películas, Series, etc.)
     ├── music.html          # Reproductor Hi-Fi Audiophile Edition con visualizadores reactivos
+    ├── game.html           # Emulador web de videojuegos retro (EmulatorJS / WebAssembly)
     ├── book.html           # Vista pública detallada tras escanear tarjeta NFC
     ├── reader.html         # Lector web en tira continua para cómics y mangas
     ├── player.html         # Reproductor de video interactivo para películas y series

@@ -790,6 +790,7 @@
                                 <option value="series">Serie</option>
                                 <option value="music">Música</option>
                                 <option value="anime">Anime</option>
+                                <option value="game">🎮 Videojuego / ROM</option>
                             </select>
                         </div>
 
@@ -1008,6 +1009,10 @@
                     fileInput.accept = "audio/*,.opus,.mp3,.wav,.flac,.ogg,.m4a,.aac";
                     fileInput.multiple = true;
                     fileLabel.innerText = "Pistas de Audio (Múltiple) *";
+                } else if (val === 'game') {
+                    fileInput.accept = ".sfc,.smc,.gba,.gb,.gbc,.nes,.n64,.z64,.md,.gen,.nds,.iso,.bin,.zip";
+                    fileInput.multiple = false;
+                    fileLabel.innerText = "Archivo ROM de Videojuego (.gba, .sfc, .nes, .n64, .md, .zip) *";
                 }
             });
         }

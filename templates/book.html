@@ -38,6 +38,9 @@
             {% elif book.type == 'anime' %}
                 --theme-color: #ec4899;
                 --theme-glow: rgba(236, 72, 153, 0.15);
+            {% elif book.type == 'game' %}
+                --theme-color: #6366f1;
+                --theme-glow: rgba(99, 102, 241, 0.25);
             {% else %}
                 --theme-color: #00f2fe;
                 --theme-glow: rgba(0, 242, 254, 0.15);
@@ -615,6 +618,7 @@
                     {% elif book.type == 'music' %}<i class="fa-solid fa-music"></i> Música
                     {% elif book.type == 'anime' %}<i class="fa-solid fa-cat"></i> Anime
                     {% elif book.type == 'manga' %}<i class="fa-solid fa-book-open"></i> Manga
+                    {% elif book.type == 'game' %}<i class="fa-solid fa-gamepad"></i> Videojuego
                     {% else %}<i class="fa-solid fa-book"></i> Libro
                     {% endif %}
                 </span>
@@ -658,7 +662,11 @@
                 <div>
                     <div class="section-title">Acciones disponibles</div>
                     <div class="actions-box">
-                        {% if book.type == 'movie' %}
+                        {% if book.type == 'game' %}
+                            <a href="/game/{{ book.id }}" class="btn btn-theme">
+                                <i class="fa-solid fa-gamepad"></i> Jugar ahora
+                            </a>
+                        {% elif book.type == 'movie' %}
                             <a href="/player/{{ book.id }}" class="btn btn-theme">
                                 <i class="fa-solid fa-play"></i> Reproducir ahora
                             </a>
@@ -675,6 +683,7 @@
                         {% endif %}
                     </div>
                 </div>
+
 
                 <!-- Episodios / Capítulos / Tomos de la Saga -->
                 {% if (book.type in ['series', 'anime', 'music'] and (book.file is not string or (saga_books and saga_books|length > 1))) or (book.type in ['manga', 'book'] and saga_books and saga_books|length > 1) %}

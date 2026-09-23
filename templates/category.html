@@ -38,6 +38,9 @@
             {% elif category_name == 'anime' %}
                 --theme-color: #ec4899;
                 --theme-glow: rgba(236, 72, 153, 0.15);
+            {% elif category_name == 'game' %}
+                --theme-color: #6366f1;
+                --theme-glow: rgba(99, 102, 241, 0.25);
             {% else %}
                 --theme-color: #00f2fe;
                 --theme-glow: rgba(0, 242, 254, 0.15);
@@ -552,6 +555,7 @@
                 {% elif category_name == 'series' %}<i class="fa-solid fa-tv"></i>
                 {% elif category_name == 'anime' %}<i class="fa-solid fa-cat"></i>
                 {% elif category_name == 'music' %}<i class="fa-solid fa-music"></i>
+                {% elif category_name == 'game' %}<i class="fa-solid fa-gamepad"></i>
                 {% endif %}
                 <h2>{{ category_title }}</h2>
                 <span class="count-badge" id="countBadge">{{ books|length }} obras</span>
@@ -598,7 +602,7 @@
                             {% if book.is_saga_group and book.saga_total_items > 1 %}
                                 <span class="saga-badge" title="{% if book.has_random_cover %}Rotación aleatoria activa{% else %}Saga con múltiples obras{% endif %}">
                                     {% if book.has_random_cover %}<i class="fa-solid fa-dice"></i>{% else %}<i class="fa-solid fa-layer-group"></i>{% endif %}
-                                    {{ book.saga_total_items }} {% if book.type == 'manga' %}Tomos{% elif book.type in ['series', 'anime'] %}Caps{% elif book.type == 'music' %}Pistas{% elif book.type == 'book' %}Libros{% else %}Vol.{% endif %}
+                                    {{ book.saga_total_items }} {% if book.type == 'manga' %}Tomos{% elif book.type in ['series', 'anime'] %}Caps{% elif book.type == 'music' %}Pistas{% elif book.type == 'book' %}Libros{% elif book.type == 'game' %}Juegos{% else %}Vol.{% endif %}
                                 </span>
                             {% endif %}
                         </div>
@@ -636,7 +640,9 @@
                         </div>
 
                         <div class="card-actions">
-                            {% if book.type in ['movie', 'series', 'music', 'anime'] %}
+                            {% if book.type == 'game' %}
+                                <a href="/game/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-gamepad"></i> Jugar</a>
+                            {% elif book.type in ['movie', 'series', 'music', 'anime'] %}
                                 <a href="/player/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-play"></i> Reproducir</a>
                             {% else %}
                                 <a href="/read/{{ book.id }}" class="btn btn-theme"><i class="fa-solid fa-book-open"></i> Leer</a>

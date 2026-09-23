@@ -68,6 +68,54 @@ VIDEO_EXTS = ('.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.MP4', '.MKV', '
 IMAGE_EXTS = ('.jpg', '.jpeg', '.png', '.webp', '.JPG', '.JPEG', '.PNG', '.WEBP')
 AUDIO_EXTS = ('.mp3', '.flac', '.wav', '.ogg', '.opus', '.m4a', '.aac', '.wma', '.alac', '.aiff',
               '.MP3', '.FLAC', '.WAV', '.OGG', '.OPUS', '.M4A', '.AAC', '.WMA', '.ALAC', '.AIFF')
+GAME_EXTS = ('.sfc', '.smc', '.gba', '.gb', '.gbc', '.nes', '.n64', '.z64', '.v64',
+             '.md', '.gen', '.smd', '.nds', '.bin', '.iso', '.cue', '.chd', '.pbp', '.zip',
+             '.SFC', '.SMC', '.GBA', '.GB', '.GBC', '.NES', '.N64', '.Z64', '.V64',
+             '.MD', '.GEN', '.SMD', '.NDS', '.BIN', '.ISO', '.CUE', '.CHD', '.PBP', '.ZIP')
+
+def detect_game_core(filename):
+    """Detecta el core de EmulatorJS y nombre de la consola a partir del archivo ROM."""
+    if not filename:
+        return 'snes', 'Super Nintendo (SNES)'
+    
+    ext = os.path.splitext(filename)[1].lower()
+    fn = filename.lower()
+    
+    if ext in ['.sfc', '.smc']:
+        return 'snes', 'Super Nintendo (SNES)'
+    elif ext == '.gba':
+        return 'gba', 'Game Boy Advance'
+    elif ext == '.gbc':
+        return 'gbc', 'Game Boy Color'
+    elif ext == '.gb':
+        return 'gb', 'Game Boy'
+    elif ext == '.nes':
+        return 'nes', 'Nintendo Entertainment System (NES)'
+    elif ext in ['.n64', '.z64', '.v64']:
+        return 'n64', 'Nintendo 64'
+    elif ext in ['.md', '.gen', '.smd']:
+        return 'segaMD', 'Sega Genesis / Mega Drive'
+    elif ext == '.nds':
+        return 'nds', 'Nintendo DS'
+    elif ext in ['.psx', '.iso', '.cue', '.chd', '.pbp']:
+        return 'psx', 'Sony PlayStation'
+    elif ext == '.zip':
+        if 'gba' in fn:
+            return 'gba', 'Game Boy Advance'
+        elif 'gbc' in fn:
+            return 'gbc', 'Game Boy Color'
+        elif 'gb' in fn:
+            return 'gb', 'Game Boy'
+        elif 'nes' in fn:
+            return 'nes', 'Nintendo NES'
+        elif 'n64' in fn:
+            return 'n64', 'Nintendo 64'
+        elif 'md' in fn or 'genesis' in fn or 'megadrive' in fn or 'sega' in fn:
+            return 'segaMD', 'Sega Genesis'
+        return 'snes', 'Super Nintendo (ZIP)'
+    
+    return 'snes', 'Retro Console'
+
 
 def extract_audio_embedded_metadata(file_source):
     """
@@ -822,7 +870,7 @@ def index():
     books = load_books()
     
     # Calcular cantidades por tipo de contenido para el index (contando sagas únicas + obras independientes)
-    type_counts = {'book': 0, 'manga': 0, 'movie': 0, 'series': 0, 'music': 0, 'anime': 0}
+    type_counts = {'book': 0, 'manga': 0, 'movie': 0, 'series': 0, 'music': 0, 'anime': 0, 'game': 0}
     for t in type_counts.keys():
         t_books = [b for b in books if b.get('type', 'book') == t]
         type_counts[t] = len(get_grouped_category_books(t_books, allow_random=False))
@@ -847,7 +895,7 @@ def category_view(category_name='music'):
             category_title='Música'
         )
 
-    # Agrupar obras por saga para Manga, Anime, Series, Libros
+    # Agrupar obras por saga para Manga, Anime, Series, Libros, Juegos
     filtered_books = get_grouped_category_books(raw_filtered, allow_random=True)
     
     # Lógica de Paginación (20 elementos por página)
@@ -876,7 +924,8 @@ def category_view(category_name='music'):
         'movie': 'Películas',
         'series': 'Series',
         'music': 'Música',
-        'anime': 'Animes'
+        'anime': 'Animes',
+        'game': 'Juegos Retro'
     }
     title = category_titles.get(category_name, category_name.capitalize())
     
@@ -961,6 +1010,8 @@ def web_player(media_id):
         media_type = book.get('type', 'movie')
         if media_type in ['book', 'manga']:
             return redirect(url_for('web_reader', book_id=media_id))
+        elif media_type == 'game':
+            return redirect(url_for('play_game', media_id=media_id))
             
         saga = book.get('saga', '').strip()
         saga_books = []
@@ -975,6 +1026,49 @@ def web_player(media_id):
         return render_template('player.html', media=book, media_type=media_type, file_val=file_val, saga_books=saga_books)
     flash("Obra no encontrada", "error")
     return redirect(url_for('admin'))
+
+@app.route('/game/<media_id>')
+@app.route('/play/game/<media_id>')
+def play_game(media_id):
+    books = load_books()
+    book = next((b for b in books if b.get('id') == media_id), None)
+    if not book:
+        flash("Juego no encontrado", "error")
+        return redirect(url_for('index'))
+    
+    file_entry = book.get('file', '')
+    if isinstance(file_entry, list) and len(file_entry) > 0:
+        file_entry = file_entry[0]
+        
+    core, console_name = detect_game_core(str(file_entry))
+    rom_url = f"/rom_file/{book['id']}"
+    return render_template('game.html', game=book, core=core, console_name=console_name, rom_url=rom_url)
+
+@app.route('/rom_file/<media_id>')
+def serve_rom_file(media_id):
+    books = load_books()
+    book = next((b for b in books if b.get('id') == media_id), None)
+    if not book:
+        return "Obra no encontrada", 404
+        
+    file_entry = book.get('file', '')
+    if isinstance(file_entry, list) and len(file_entry) > 0:
+        file_entry = file_entry[0]
+        
+    filepath = resolve_media_file_path(str(file_entry))
+    if not filepath or not os.path.exists(filepath):
+        cand_exts = ['.sfc', '.smc', '.gba', '.gb', '.gbc', '.nes', '.n64', '.z64', '.md', '.zip', '.nds', '.bin', '.iso']
+        for ext in cand_exts:
+            p = os.path.join(app.config['UPLOAD_FOLDER'], f"doc_{media_id}{ext}")
+            if os.path.exists(p):
+                filepath = p
+                break
+                
+    if not filepath or not os.path.exists(filepath):
+        return "Archivo ROM no encontrado en el servidor", 404
+        
+    return send_from_directory(os.path.dirname(filepath), os.path.basename(filepath), conditional=True)
+
 
 FFMPEG_BIN = shutil.which('ffmpeg') or '/usr/bin/ffmpeg'
 FFPROBE_BIN = shutil.which('ffprobe') or '/usr/bin/ffprobe'
@@ -1044,7 +1138,13 @@ def resolve_media_file_path(filename):
     if os.path.exists(media_path) and os.path.isfile(media_path):
         return media_path
 
-    # 3. Ruta absoluta
+    # 3. Buscar en /data/storage2 y subcarpetas (games, roms, torrents, etc.)
+    for alt_base in ['/data/storage2/games', '/data/storage2/roms', '/data/storage2/torrents', '/data/storage2', '/data/media/games']:
+        alt_path = os.path.join(alt_base, filename)
+        if os.path.exists(alt_path) and os.path.isfile(alt_path):
+            return alt_path
+
+    # 4. Ruta absoluta
     if os.path.isabs(filename) and os.path.exists(filename) and os.path.isfile(filename):
         return filename
 
