@@ -2749,6 +2749,264 @@ def api_save_media_root():
     
     return jsonify({"success": True, "media_root": new_root})
 
+# =============================================================
+# HERRAMIENTAS UNIFICADOR & MAQUETADOR TCG NFC (TAPBOX TOOLS)
+# =============================================================
+import unifier_engine
+
+@app.route('/unifier')
+@app.route('/admin/unifier')
+def unifier_view():
+    return render_template('unifier.html')
+
+@app.route('/api/server-covers', methods=['GET'])
+def api_server_covers():
+    books = load_books()
+    cover_folder = app.config['COVER_FOLDER']
+    known_covers = {}
+    
+    for b in books:
+        c = b.get('cover')
+        if c and os.path.exists(os.path.join(cover_folder, c)):
+            known_covers[c] = {
+                'cover': c,
+                'title': b.get('title', 'Sin Título'),
+                'author': b.get('author', ''),
+                'saga': b.get('saga', ''),
+                'type': b.get('type', 'book'),
+                'id': b.get('id', '')
+            }
+            
+    try:
+        for fname in os.listdir(cover_folder):
+            if fname.lower().endswith(IMAGE_EXTS):
+                if fname not in known_covers:
+                    clean_name = os.path.splitext(fname)[0].replace('_', ' ').replace('-', ' ').title()
+                    known_covers[fname] = {
+                        'cover': fname,
+                        'title': clean_name,
+                        'author': '',
+                        'saga': '',
+                        'type': 'other',
+                        'id': ''
+                    }
+    except Exception as e:
+        print(f"Error listando portadas: {e}")
+        
+    covers_list = list(known_covers.values())
+    covers_list.sort(key=lambda x: x.get('title', '').lower())
+    return jsonify({"success": True, "covers": covers_list, "total": len(covers_list)})
+
+@app.route('/api/unifier/merge', methods=['POST'])
+def api_unifier_merge():
+    files = request.files.getlist('files')
+    if not files or len(files) == 0:
+        return jsonify({"success": False, "error": "No se recibieron archivos"}), 400
+        
+    out_format = request.form.get('format', 'cbz').lower()
+    custom_name = request.form.get('output_name', '').strip()
+    server_cover = request.form.get('server_cover', '').strip()
+    
+    cover_path = None
+    if server_cover:
+        potential_cover = os.path.join(app.config['COVER_FOLDER'], server_cover)
+        if os.path.exists(potential_cover):
+            cover_path = potential_cover
+
+    # Guardar archivos temporales recibidos
+    temp_dir = tempfile.mkdtemp(prefix="tapbox_unify_upload_")
+    saved_file_paths = []
+    
+    try:
+        for f in files:
+            if f.filename:
+                dest = os.path.join(temp_dir, f.filename)
+                f.save(dest)
+                saved_file_paths.append(dest)
+                
+        # Orden natural de los archivos subidos
+        saved_file_paths.sort(key=lambda p: unifier_engine.natural_sort_key(os.path.basename(p)))
+        
+        # Nombre de salida
+        clean_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', custom_name) if custom_name else f"unificado_{int(time.time())}"
+        out_filename = f"{clean_name}.{out_format}"
+        out_dest = os.path.join(app.config['CACHE_FOLDER'], out_filename)
+        
+        if out_format == 'pdf':
+            unifier_engine.merge_pdf_files(saved_file_paths, out_dest, cover_image_path=cover_path)
+        else:
+            unifier_engine.merge_comic_files(saved_file_paths, out_dest, cover_image_path=cover_path)
+            
+        return jsonify({
+            "success": True,
+            "filename": out_filename,
+            "download_url": f"/api/unifier/download/{out_filename}"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+@app.route('/api/unifier/group-tomos', methods=['POST'])
+def api_unifier_group_tomos():
+    files = request.files.getlist('files')
+    if not files or len(files) == 0:
+        return jsonify({"success": False, "error": "No se recibieron archivos"}), 400
+        
+    try:
+        chapters_per_tomo = int(request.form.get('chapters_per_tomo', 10))
+    except ValueError:
+        chapters_per_tomo = 10
+        
+    prefix = request.form.get('prefix', 'Tomo').strip() or 'Tomo'
+    
+    temp_dir = tempfile.mkdtemp(prefix="tapbox_tomos_upload_")
+    out_tomos_dir = os.path.join(temp_dir, "tomos_output")
+    saved_file_paths = []
+    
+    try:
+        for f in files:
+            if f.filename:
+                dest = os.path.join(temp_dir, f.filename)
+                f.save(dest)
+                saved_file_paths.append(dest)
+                
+        saved_file_paths.sort(key=lambda p: unifier_engine.natural_sort_key(os.path.basename(p)))
+        
+        generated_tomos = unifier_engine.group_comics_into_tomos(
+            saved_file_paths, 
+            chapters_per_tomo=chapters_per_tomo, 
+            output_dir=out_tomos_dir, 
+            prefix=prefix
+        )
+        
+        # Empaquetar tomos generados en un ZIP para descarga conjunta
+        zip_filename = f"{re.sub(r'[^a-zA-Z0-9_-]', '_', prefix)}_Tomos.zip"
+        zip_dest = os.path.join(app.config['CACHE_FOLDER'], zip_filename)
+        
+        with zipfile.ZipFile(zip_dest, 'w', zipfile.ZIP_STORED) as zf:
+            for tomo_path in generated_tomos:
+                zf.write(tomo_path, arcname=os.path.basename(tomo_path))
+                
+        return jsonify({
+            "success": True,
+            "zip_filename": zip_filename,
+            "tomos_count": len(generated_tomos),
+            "download_url": f"/api/unifier/download/{zip_filename}"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+@app.route('/api/unifier/generate-tcg', methods=['POST'])
+def api_unifier_generate_tcg():
+    server_cards_json = request.form.get('server_cards_json', '[]')
+    try:
+        server_cards = json.loads(server_cards_json)
+    except Exception:
+        server_cards = []
+        
+    local_files = request.files.getlist('local_cards')
+    server_back = request.form.get('server_back', '').strip()
+    page_size = request.form.get('page_size', 'LETTER')
+    crop_marks = request.form.get('crop_marks', 'true').lower() == 'true'
+    
+    temp_dir = tempfile.mkdtemp(prefix="tapbox_tcg_")
+    card_paths = []
+    
+    try:
+        # Portadas del servidor
+        for c_fn in server_cards:
+            p = os.path.join(app.config['COVER_FOLDER'], c_fn)
+            if os.path.exists(p):
+                card_paths.append(p)
+                
+        # Archivos locales subidos
+        for lf in local_files:
+            if lf.filename:
+                dest = os.path.join(temp_dir, lf.filename)
+                lf.save(dest)
+                card_paths.append(dest)
+                
+        if not card_paths:
+            return jsonify({"success": False, "error": "No hay imágenes para generar el pliego"}), 400
+            
+        back_path = None
+        if server_back:
+            p_back = os.path.join(app.config['COVER_FOLDER'], server_back)
+            if os.path.exists(p_back):
+                back_path = p_back
+                
+        pdf_filename = f"Pliego_TCG_NFC_{int(time.time())}.pdf"
+        pdf_dest = os.path.join(app.config['CACHE_FOLDER'], pdf_filename)
+        
+        unifier_engine.generate_tcg_sheet(
+            card_images=card_paths,
+            output_path=pdf_dest,
+            page_size=page_size,
+            back_image_path=back_path,
+            crop_marks=crop_marks
+        )
+        
+        return jsonify({
+            "success": True,
+            "filename": pdf_filename,
+            "download_url": f"/api/unifier/download/{pdf_filename}"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+@app.route('/api/unifier/generate-repeat-tcg', methods=['POST'])
+def api_unifier_generate_repeat_tcg():
+    server_cover = request.form.get('server_cover', '').strip()
+    server_back = request.form.get('server_back', '').strip()
+    page_size = request.form.get('page_size', 'LETTER')
+    try:
+        copies = int(request.form.get('copies', 9))
+    except ValueError:
+        copies = 9
+        
+    if not server_cover:
+        return jsonify({"success": False, "error": "Debes especificar la portada a repetir"}), 400
+        
+    front_path = os.path.join(app.config['COVER_FOLDER'], server_cover)
+    if not os.path.exists(front_path):
+        return jsonify({"success": False, "error": "No se encontró la portada en el servidor"}), 404
+        
+    back_path = None
+    if server_back:
+        p_back = os.path.join(app.config['COVER_FOLDER'], server_back)
+        if os.path.exists(p_back):
+            back_path = p_back
+            
+    try:
+        pdf_filename = f"Pliego_Repetido_{server_cover}_{int(time.time())}.pdf"
+        pdf_dest = os.path.join(app.config['CACHE_FOLDER'], pdf_filename)
+        
+        unifier_engine.generate_repeat_tcg_sheet(
+            card_image_path=front_path,
+            copies=copies,
+            output_path=pdf_dest,
+            page_size=page_size,
+            back_image_path=back_path,
+            crop_marks=True
+        )
+        
+        return jsonify({
+            "success": True,
+            "filename": pdf_filename,
+            "download_url": f"/api/unifier/download/{pdf_filename}"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/unifier/download/<path:filename>')
+def api_unifier_download(filename):
+    return send_from_directory(app.config['CACHE_FOLDER'], filename, as_attachment=True)
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)

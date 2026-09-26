@@ -64,7 +64,7 @@ def sync_single_file(local_path, remote_path):
 
 # 1. Sincronizar archivos raiz
 print("\n1. Sincronizando scripts principales y catalogo...")
-for f in ["app.py", "catalog.json", "config.json", "AGENTS.md", "notas.md"]:
+for f in ["app.py", "unifier_engine.py", "catalog.json", "config.json", "AGENTS.md", "notas.md"]:
     l_path = os.path.join(LOCAL_BASE, f)
     r_path = f"{REMOTE_BASE}/{f}"
     sync_single_file(l_path, r_path)
