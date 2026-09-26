@@ -626,6 +626,14 @@
             <div class="sidebar-section">
                 <div class="sidebar-heading"><i class="fa-solid fa-toolbox" style="color: var(--vlc-orange);"></i> Herramientas Adicionales</div>
                 <div class="sidebar-menu">
+                    <a href="#downloadCoversSection" class="menu-item" onclick="document.getElementById('downloadCoversSection').scrollIntoView({behavior: 'smooth'})">
+                        <div class="menu-icon icon-purple"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                        <div class="menu-text-wrap">
+                            <span class="menu-label">Descargar Portadas</span>
+                            <span class="menu-sub">Exportar ZIP por categorías</span>
+                        </div>
+                    </a>
+
                     <a href="/cleaner" class="menu-item">
                         <div class="menu-icon icon-cyan"><i class="fa-solid fa-broom"></i></div>
                         <div class="menu-text-wrap">
@@ -945,6 +953,58 @@
                         {% else %}
                         <p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 10px;">No hay categorías registradas aún.</p>
                         {% endif %}
+                    </div>
+
+                    <!-- EXPORTAR Y DESCARGAR PORTADAS -->
+                    <div class="card" id="downloadCoversSection" style="border: 1px solid rgba(188, 140, 255, 0.35); box-shadow: 0 4px 20px rgba(188, 140, 255, 0.08);">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fa-solid fa-cloud-arrow-down" style="color: var(--purple);"></i>
+                                Descargar Portadas por Categoría
+                            </div>
+                            <span class="brand-badge" style="background: rgba(188, 140, 255, 0.15); color: var(--purple); border: 1px solid rgba(188, 140, 255, 0.3);">{{ covers_count }} Portadas</span>
+                        </div>
+
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+                            Descarga paquetes comprimidos en archivo ZIP con todas las imágenes de portadas y carátulas organizadas y nombradas con su título y saga.
+                        </p>
+
+                        <!-- Botón Descargar TODO -->
+                        <a href="/admin/api/download-covers?category=all" class="btn-submit" style="background: linear-gradient(135deg, var(--purple), var(--accent-cyan)); margin-bottom: 14px; text-decoration: none; padding: 11px;">
+                            <i class="fa-solid fa-file-zipper"></i> Descargar TODO el Catálogo (ZIP por Carpetas)
+                        </a>
+
+                        <!-- Grid por Categorías -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <a href="/admin/api/download-covers?category=anime" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-cat" style="color: #ec4899;"></i> Anime</span>
+                                <span style="font-size: 11px; background: rgba(236, 72, 153, 0.2); color: #ec4899; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('anime', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=manga" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-book-open" style="color: #10b981;"></i> Manga</span>
+                                <span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('manga', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=book" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-book" style="color: #4facfe;"></i> Libros</span>
+                                <span style="font-size: 11px; background: rgba(79, 172, 254, 0.2); color: #4facfe; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('book', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=movie" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-film" style="color: #ef4444;"></i> Películas</span>
+                                <span style="font-size: 11px; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('movie', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=series" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-tv" style="color: #f59e0b;"></i> Series</span>
+                                <span style="font-size: 11px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('series', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=music" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none;">
+                                <span><i class="fa-solid fa-music" style="color: #8b5cf6;"></i> Música</span>
+                                <span style="font-size: 11px; background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('music', 0) }}</span>
+                            </a>
+                            <a href="/admin/api/download-covers?category=game" class="btn-nav" style="justify-content: space-between; padding: 9px 12px; text-decoration: none; grid-column: 1 / -1;">
+                                <span><i class="fa-solid fa-gamepad" style="color: #6366f1;"></i> Videojuegos Retro</span>
+                                <span style="font-size: 11px; background: rgba(99, 102, 241, 0.2); color: #6366f1; padding: 2px 6px; border-radius: 6px; font-weight: 700;">{{ type_counts.get('game', 0) }}</span>
+                            </a>
+                        </div>
                     </div>
 
                     <!-- CAMBIO DE CONTRASEÑA ADMIN -->

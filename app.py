@@ -2749,6 +2749,88 @@ def api_save_media_root():
     
     return jsonify({"success": True, "media_root": new_root})
 
+# =============================================================
+# EXPORTACIÓN Y DESCARGA DE PORTADAS POR CATEGORÍAS (.ZIP)
+# =============================================================
+def sanitize_export_filename(name):
+    clean = re.sub(r'[\\/*?:"<>|]', "", str(name))
+    return re.sub(r'\s+', ' ', clean).strip()
+
+@app.route('/admin/api/download-covers')
+@app.route('/api/download-covers')
+def api_download_covers():
+    cat_param = request.args.get('category', 'all').lower().strip()
+    books = load_books()
+    cover_folder = app.config['COVER_FOLDER']
+    cache_folder = app.config['CACHE_FOLDER']
+    
+    category_names_map = {
+        'anime': 'Animes',
+        'manga': 'Mangas',
+        'book': 'Libros',
+        'movie': 'Peliculas',
+        'series': 'Series',
+        'music': 'Musica',
+        'game': 'Juegos_Retro'
+    }
+    
+    if cat_param != 'all':
+        books_to_pack = [b for b in books if b.get('type') == cat_param]
+        zip_title = category_names_map.get(cat_param, cat_param.title())
+        zip_filename = f"TapBox_Portadas_{zip_title}.zip"
+    else:
+        books_to_pack = books
+        zip_filename = "TapBox_Todas_Las_Portadas.zip"
+        
+    zip_dest_path = os.path.join(cache_folder, zip_filename)
+    
+    with zipfile.ZipFile(zip_dest_path, 'w', zipfile.ZIP_STORED) as zf:
+        added_arcnames = set()
+        
+        for b in books_to_pack:
+            cov_file = b.get('cover')
+            if not cov_file:
+                continue
+            cov_path = os.path.join(cover_folder, cov_file)
+            if not os.path.exists(cov_path):
+                continue
+                
+            b_type = b.get('type', 'other')
+            type_folder = category_names_map.get(b_type, b_type.title())
+            
+            saga_name = sanitize_export_filename(b.get('saga') or '')
+            title_name = sanitize_export_filename(b.get('title') or 'Sin_Titulo')
+            ext = os.path.splitext(cov_file)[1] or '.jpg'
+            
+            if saga_name and saga_name.lower() != title_name.lower():
+                base_name = f"{saga_name} - {title_name}"
+            else:
+                base_name = title_name
+                
+            if len(base_name) > 90:
+                base_name = base_name[:90].strip()
+                
+            clean_file_name = f"{base_name}{ext}"
+            
+            if cat_param == 'all':
+                arcname = f"{type_folder}/{clean_file_name}"
+            else:
+                arcname = clean_file_name
+                
+            counter = 2
+            final_arcname = arcname
+            while final_arcname in added_arcnames:
+                if cat_param == 'all':
+                    final_arcname = f"{type_folder}/{base_name} ({counter}){ext}"
+                else:
+                    final_arcname = f"{base_name} ({counter}){ext}"
+                counter += 1
+                
+            zf.write(cov_path, arcname=final_arcname)
+            added_arcnames.add(final_arcname)
+            
+    return send_from_directory(cache_folder, zip_filename, as_attachment=True)
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
