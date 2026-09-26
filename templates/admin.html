@@ -732,6 +732,16 @@
                     </div>
                 </div>
 
+                <div class="stat-card" title="Total de imágenes de portada y carátulas guardadas en static/covers">
+                    <div class="menu-icon icon-purple" style="width: 46px; height: 46px; font-size: 20px;">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                    <div>
+                        <div class="stat-num">{{ covers_count }}</div>
+                        <div class="stat-label">Portadas / Carátulas</div>
+                    </div>
+                </div>
+
                 <div class="stat-card" title="Almacenamiento Total (Sistema + Media + SSD)">
                     <div class="menu-icon icon-blue" style="width: 46px; height: 46px; font-size: 20px;">
                         <i class="fa-solid fa-server"></i>
@@ -905,6 +915,10 @@
                             <div class="type-mini-box">
                                 <div class="type-mini-num">{{ type_counts['music'] }}</div>
                                 <div class="type-mini-label"><i class="fa-solid fa-music"></i> Música</div>
+                            </div>
+                            <div class="type-mini-box">
+                                <div class="type-mini-num">{{ type_counts.get('game', 0) }}</div>
+                                <div class="type-mini-label"><i class="fa-solid fa-gamepad"></i> Juegos</div>
                             </div>
                         </div>
                     </div>

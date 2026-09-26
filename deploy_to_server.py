@@ -6,7 +6,7 @@ import paramiko
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-HOST = "192.168.0.11"
+HOST = "192.168.0.179"
 USER = "joanml"
 PASS = "joanml"
 REMOTE_BASE = "/home/joanml/tapbox"

@@ -7,6 +7,8 @@
     <title>Música Hi-Fi - BookNFC (Audiophile Edition)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Cast SDK -->
+    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
     <style>
         :root {
             --bg-base: #07080b;
@@ -1100,6 +1102,19 @@
             box-shadow: 0 0 14px var(--accent-purple-glow);
         }
 
+        .btn-expand-player.cast-active, .btn-imm-transport.cast-active {
+            background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+            color: #ffffff !important;
+            border-color: #f472b6 !important;
+            box-shadow: 0 0 16px rgba(236, 72, 153, 0.7) !important;
+            animation: pulse-music-cast 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-music-cast {
+            0%, 100% { box-shadow: 0 0 8px rgba(168, 85, 247, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.9); }
+        }
+
         /* =============================================================
            IMMERSIVE / EXPANDED FULLSCREEN VIEW (VINYL & PARTICLE ENGINE)
            ============================================================= */
@@ -1818,6 +1833,9 @@
             <div class="hifi-stream-badge">
                 <i class="fa-solid fa-circle-nodes"></i> HI-FI DAC
             </div>
+            <button class="btn-expand-player" id="musicCastBtn" onclick="toggleCastAudio()" title="Transmitir a la TV / Altavoz (Chromecast, Smart TV, AirPlay)">
+                <i class="fa-brands fa-chromecast"></i>
+            </button>
             <div class="vol-slider-wrap">
                 <i class="fa-solid fa-volume-high vol-icon" id="masterVolIcon" onclick="toggleMuteMaster()"></i>
                 <div class="vol-track" id="masterVolTrack" onclick="setVolumeMaster(event)">
@@ -1927,8 +1945,11 @@
                 </button>
             </div>
 
-            <!-- Volume Tool -->
-            <div class="imm-bottom-extra-row">
+            <!-- Volume & Extra Tools -->
+            <div class="imm-bottom-extra-row" style="display: flex; align-items: center; justify-content: center; gap: 18px;">
+                <button class="btn-imm-transport" id="immCastBtn" onclick="toggleCastAudio()" title="Transmitir a la TV / Altavoz (Chromecast, Smart TV, AirPlay)">
+                    <i class="fa-brands fa-chromecast"></i>
+                </button>
                 <div class="imm-vol-wrap">
                     <i class="fa-solid fa-volume-high vol-icon" id="immVolIcon" onclick="toggleMuteMaster()"></i>
                     <div class="vol-track" id="immVolTrack" onclick="setVolumeMaster(event)">
@@ -2640,6 +2661,13 @@
             const track = allTracks[currentTrackIndex];
             updateStageMetadata(track);
 
+            if (isCastingAudio) {
+                loadTrackToCast(track);
+                isPlaying = true;
+                updatePlayButtons(true);
+                return;
+            }
+
             if (autoPlay) {
                 initWebAudio();
                 audio.src = track.src;
@@ -2994,6 +3022,181 @@
                 setVisualizerMode(nextMode);
             }
         });
+
+        // =============================================================
+        // TRANSMISIÓN A TV / ALTAVOCES (GOOGLE CAST / AIRPLAY / SMART TV)
+        // =============================================================
+        let castAudioPlayer = null;
+        let castAudioController = null;
+        let isCastingAudio = false;
+
+        window['__onGCastApiAvailable'] = function(isAvailable) {
+            if (isAvailable && window.cast && window.cast.framework) {
+                initCastAudio();
+            }
+        };
+
+        function initCastAudio() {
+            try {
+                cast.framework.CastContext.getInstance().setOptions({
+                    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+                });
+
+                castAudioPlayer = new cast.framework.RemotePlayer();
+                castAudioController = new cast.framework.RemotePlayerController(castAudioPlayer);
+
+                castAudioController.addEventListener(
+                    cast.framework.RemotePlayerEventType.IS_CONNECTED_CHANGED,
+                    () => {
+                        if (castAudioPlayer.isConnected) {
+                            onCastAudioConnected();
+                        } else {
+                            onCastAudioDisconnected();
+                        }
+                    }
+                );
+
+                castAudioController.addEventListener(
+                    cast.framework.RemotePlayerEventType.PLAYER_STATE_CHANGED,
+                    () => {
+                        if (castAudioPlayer.playerState === chrome.cast.media.PlayerState.PAUSED) {
+                            isPlaying = false;
+                            updatePlayButtons(false);
+                        } else if (castAudioPlayer.playerState === chrome.cast.media.PlayerState.PLAYING) {
+                            isPlaying = true;
+                            updatePlayButtons(true);
+                        }
+                    }
+                );
+
+                castAudioController.addEventListener(
+                    cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+                    () => {
+                        if (castAudioPlayer.duration && isCastingAudio) {
+                            const formattedCur = formatTime(castAudioPlayer.currentTime);
+                            const formattedTot = formatTime(castAudioPlayer.duration);
+                            const pct = `${(castAudioPlayer.currentTime / castAudioPlayer.duration) * 100}%`;
+
+                            labelCur.innerText = formattedCur;
+                            labelTot.innerText = formattedTot;
+                            waveformFill.style.width = pct;
+
+                            immCurTime.innerText = formattedCur;
+                            immTotTime.innerText = formattedTot;
+                            immScrubberFill.style.width = pct;
+                        }
+                    }
+                );
+
+            } catch (e) {
+                console.log("Cast audio init error:", e);
+            }
+        }
+
+        function updateCastAudioUI(active, deviceName = "") {
+            isCastingAudio = active;
+            const castBtns = [
+                document.getElementById('musicCastBtn'),
+                document.getElementById('immCastBtn')
+            ];
+            castBtns.forEach(btn => {
+                if (!btn) return;
+                if (active) {
+                    btn.classList.add('cast-active');
+                    btn.title = `Transmitiendo a: ${deviceName || 'Smart TV / Altavoz'}`;
+                } else {
+                    btn.classList.remove('cast-active');
+                    btn.title = "Transmitir a la TV / Altavoz (Chromecast, Smart TV, AirPlay)";
+                }
+            });
+        }
+
+        function onCastAudioConnected() {
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            const deviceName = session ? session.getCastDevice().friendlyName : "Smart TV / Altavoz";
+            updateCastAudioUI(true, deviceName);
+
+            if (audio && !audio.paused) {
+                audio.pause();
+            }
+
+            if (allTracks[currentTrackIndex]) {
+                loadTrackToCast(allTracks[currentTrackIndex]);
+            }
+        }
+
+        function onCastAudioDisconnected() {
+            updateCastAudioUI(false);
+            if (castAudioPlayer && castAudioPlayer.currentTime) {
+                audio.currentTime = castAudioPlayer.currentTime;
+            }
+        }
+
+        function loadTrackToCast(track) {
+            if (!track || !window.cast || !window.cast.framework) return;
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            if (!session) return;
+
+            const fullTrackUrl = window.location.origin + track.src;
+            let contentType = "audio/mpeg";
+            if (track.src.endsWith('.flac')) contentType = "audio/flac";
+            if (track.src.endsWith('.opus')) contentType = "audio/opus";
+            if (track.src.endsWith('.ogg')) contentType = "audio/ogg";
+            if (track.src.endsWith('.wav')) contentType = "audio/wav";
+
+            const mediaInfo = new chrome.cast.media.MediaInfo(fullTrackUrl, contentType);
+            mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+            mediaInfo.metadata.title = track.title;
+            mediaInfo.metadata.artist = track.artist;
+            mediaInfo.metadata.albumName = track.album;
+
+            const fullCoverUrl = track.cover.startsWith('http') ? track.cover : (window.location.origin + track.cover);
+            mediaInfo.metadata.images = [new chrome.cast.Image(fullCoverUrl)];
+
+            const request = new chrome.cast.media.LoadRequest(mediaInfo);
+            request.currentTime = audio.currentTime || 0;
+            request.autoplay = true;
+
+            session.loadMedia(request).then(
+                () => {
+                    console.log("Audio transmitiendo en Cast:", track.title);
+                },
+                (err) => {
+                    console.log("Error Cast audio load:", err);
+                }
+            );
+        }
+
+        function toggleCastAudio() {
+            if (window.cast && window.cast.framework) {
+                const context = cast.framework.CastContext.getInstance();
+                if (context) {
+                    context.requestSession().then(
+                        () => {},
+                        (err) => {
+                            if (err !== 'cancel') {
+                                fallbackCastAudioPrompt();
+                            }
+                        }
+                    );
+                    return;
+                }
+            }
+            fallbackCastAudioPrompt();
+        }
+
+        function fallbackCastAudioPrompt() {
+            if (audio.webkitShowPlaybackTargetPicker) {
+                audio.webkitShowPlaybackTargetPicker();
+                return;
+            }
+            if (audio.remote && typeof audio.remote.prompt === 'function') {
+                audio.remote.prompt().catch(e => console.log(e));
+                return;
+            }
+            alert("Abre BookNFC en Google Chrome, Microsoft Edge o Safari (iOS/Mac) en la misma red Wi-Fi para transmitir a tu Smart TV o altavoz.");
+        }
 
         // Initialize First View & Track
         renderTracks(allTracks);

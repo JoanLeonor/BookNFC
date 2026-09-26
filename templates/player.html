@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ media.saga if (media.saga and media_type in ['series', 'anime', 'music']) else media.title }} - VLC Media Player (TapBox)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Cast SDK -->
+    <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
     <style>
         :root {
             --vlc-orange: #ff7800;
@@ -268,6 +270,19 @@
             background: var(--vlc-orange-hover);
             transform: scale(1.05);
             box-shadow: 0 0 12px var(--vlc-orange-glow);
+        }
+
+        .vlc-btn-ctrl.cast-active, .btn-action.cast-active, .btn-audio.cast-active {
+            background: var(--vlc-orange) !important;
+            color: #0b0e14 !important;
+            border-color: var(--vlc-orange) !important;
+            box-shadow: 0 0 16px rgba(255, 120, 0, 0.6) !important;
+            animation: pulse-cast 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-cast {
+            0%, 100% { box-shadow: 0 0 8px rgba(255, 120, 0, 0.4); }
+            50% { box-shadow: 0 0 18px rgba(255, 120, 0, 0.85); }
         }
 
         .vlc-speed-select {
@@ -787,6 +802,7 @@
                                 <option value="1.5">1.5x</option>
                                 <option value="2">2.0x</option>
                             </select>
+                            <button class="vlc-btn-ctrl" id="vlcCastBtn" onclick="toggleCastPlayback()" title="Transmitir a la TV (Chromecast, Smart TV, AirPlay)"><i class="fa-brands fa-chromecast" id="vlcCastIcon"></i></button>
                             <button class="vlc-btn-ctrl" onclick="vlcTogglePip()" title="Picture-in-Picture / Pantalla Flotante (P)"><i class="fa-solid fa-clone"></i></button>
                             <button class="vlc-btn-ctrl" onclick="vlcToggleFullscreen()" title="Pantalla Completa (F)"><i class="fa-solid fa-expand"></i></button>
                         </div>
@@ -801,6 +817,9 @@
                     </div>
 
                     <div class="video-actions">
+                        <button class="btn-action" id="actionCastBtn" onclick="toggleCastPlayback()" title="Transmitir reproducción a Smart TV o Chromecast">
+                            <i class="fa-brands fa-chromecast"></i> Transmitir a TV
+                        </button>
                         <a id="vlcAppBtn" href="#" class="btn-action btn-vlc-launcher" title="Abrir transmisión directa en la app de VLC Player">
                             <i class="fa-solid fa-cone"></i> Abrir en App VLC
                         </a>
@@ -875,9 +894,13 @@
                 <button class="btn-audio" onclick="prevTrack()" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
                 <button class="btn-audio play-pause" id="playPauseBtn" onclick="togglePlay()" title="Reproducir / Pausa"><i class="fa-solid fa-play" id="playIcon"></i></button>
                 <button class="btn-audio" onclick="nextTrack()" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="btn-audio" id="audioCastBtn" onclick="toggleCastPlayback()" title="Transmitir a la TV / Altavoz (Chromecast, Smart TV, AirPlay)"><i class="fa-brands fa-chromecast"></i></button>
             </div>
 
-            <div class="video-actions" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+            <div class="video-actions" style="width: 100%; justify-content: center; margin-bottom: 1rem; gap: 0.6rem;">
+                <button class="btn-action" onclick="toggleCastPlayback()" title="Transmitir a Smart TV o Chromecast">
+                    <i class="fa-brands fa-chromecast"></i> Transmitir Audio a TV
+                </button>
                 <a id="vlcAudioBtn" href="#" class="btn-action btn-vlc-launcher" style="font-size: 0.8rem; padding: 0.45rem 0.85rem;">
                     <i class="fa-solid fa-cone"></i> Abrir Pista en VLC
                 </a>
@@ -953,6 +976,203 @@
             }).catch(e => {
                 showToast("Enlace: " + currentStreamFullUrl);
             });
+        }
+
+        // ================= TRANSMISIÓN A TV (GOOGLE CAST / AIRPLAY / SMART TV) =================
+        let castPlayer = null;
+        let castPlayerController = null;
+        let isCasting = false;
+
+        window['__onGCastApiAvailable'] = function(isAvailable) {
+            if (isAvailable && window.cast && window.cast.framework) {
+                initGoogleCast();
+            }
+        };
+
+        function initGoogleCast() {
+            try {
+                cast.framework.CastContext.getInstance().setOptions({
+                    receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+                });
+
+                castPlayer = new cast.framework.RemotePlayer();
+                castPlayerController = new cast.framework.RemotePlayerController(castPlayer);
+
+                castPlayerController.addEventListener(
+                    cast.framework.RemotePlayerEventType.IS_CONNECTED_CHANGED,
+                    () => {
+                        if (castPlayer.isConnected) {
+                            onCastConnected();
+                        } else {
+                            onCastDisconnected();
+                        }
+                    }
+                );
+
+                castPlayerController.addEventListener(
+                    cast.framework.RemotePlayerEventType.PLAYER_STATE_CHANGED,
+                    () => {
+                        const playIconEl = document.getElementById('vlcPlayIcon') || document.getElementById('playIcon');
+                        if (castPlayer.playerState === chrome.cast.media.PlayerState.PAUSED) {
+                            if (playIconEl) playIconEl.className = "fa-solid fa-play";
+                        } else if (castPlayer.playerState === chrome.cast.media.PlayerState.PLAYING) {
+                            if (playIconEl) playIconEl.className = "fa-solid fa-pause";
+                        }
+                    }
+                );
+
+                castPlayerController.addEventListener(
+                    cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+                    () => {
+                        if (castPlayer.duration && isCasting) {
+                            const pct = (castPlayer.currentTime / castPlayer.duration) * 100;
+                            const curEl = document.getElementById('vlcTimeCur') || document.getElementById('currentTime');
+                            const durEl = document.getElementById('vlcTimeDur') || document.getElementById('totalTime');
+                            const progEl = document.getElementById('vlcProgressBar') || document.getElementById('progressSlider');
+                            if (progEl) progEl.value = pct;
+                            if (curEl) curEl.innerText = formatTime(castPlayer.currentTime);
+                            if (durEl) durEl.innerText = formatTime(castPlayer.duration);
+                        }
+                    }
+                );
+
+            } catch (e) {
+                console.log("Cast init error:", e);
+            }
+        }
+
+        function updateCastButtonsUI(active, deviceName = "") {
+            isCasting = active;
+            const castBtns = [
+                document.getElementById('vlcCastBtn'),
+                document.getElementById('actionCastBtn'),
+                document.getElementById('audioCastBtn')
+            ];
+            castBtns.forEach(btn => {
+                if (!btn) return;
+                if (active) {
+                    btn.classList.add('cast-active');
+                    btn.title = `Transmitiendo a la TV: ${deviceName || 'Smart TV / Chromecast'}`;
+                } else {
+                    btn.classList.remove('cast-active');
+                    btn.title = "Transmitir a la TV (Chromecast, Smart TV, AirPlay)";
+                }
+            });
+        }
+
+        function onCastConnected() {
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            const deviceName = session ? session.getCastDevice().friendlyName : "Smart TV";
+            updateCastButtonsUI(true, deviceName);
+            showToast(`Conectado a la TV: ${deviceName}`);
+
+            const vEl = document.getElementById('mainVideo');
+            const aEl = document.getElementById('mainAudio');
+            if (vEl && !vEl.paused) vEl.pause();
+            if (aEl && !aEl.paused) aEl.pause();
+
+            loadMediaToCast();
+        }
+
+        function onCastDisconnected() {
+            updateCastButtonsUI(false);
+            showToast("Transmisión en TV finalizada");
+            if (castPlayer && castPlayer.currentTime) {
+                const vEl = document.getElementById('mainVideo');
+                const aEl = document.getElementById('mainAudio');
+                if (vEl) vEl.currentTime = castPlayer.currentTime;
+                if (aEl) aEl.currentTime = castPlayer.currentTime;
+            }
+        }
+
+        function loadMediaToCast() {
+            if (!window.cast || !window.cast.framework) return;
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            if (!session) return;
+
+            let mediaUrl = currentStreamFullUrl || "";
+            if (!mediaUrl) return;
+
+            let title = "";
+            const titleEl = document.getElementById('currentVideoTitle') || document.getElementById('trackTitle');
+            if (titleEl) title = titleEl.innerText;
+            if (!title) title = "{{ media.title }}";
+
+            let contentType = "video/mp4";
+            {% if media_type == 'music' %}
+            contentType = "audio/mpeg";
+            if (mediaUrl.endsWith('.flac')) contentType = "audio/flac";
+            if (mediaUrl.endsWith('.opus')) contentType = "audio/opus";
+            if (mediaUrl.endsWith('.ogg')) contentType = "audio/ogg";
+            if (mediaUrl.endsWith('.wav')) contentType = "audio/wav";
+            {% endif %}
+
+            const mediaInfo = new chrome.cast.media.MediaInfo(mediaUrl, contentType);
+            mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+            mediaInfo.metadata.title = title;
+            mediaInfo.metadata.subtitle = "{{ media.saga or media.author or 'TapBox' }}";
+
+            const coverUrl = window.location.origin + "/static/covers/{{ media.cover }}";
+            mediaInfo.metadata.images = [new chrome.cast.Image(coverUrl)];
+
+            const request = new chrome.cast.media.LoadRequest(mediaInfo);
+            
+            let resumeTime = 0;
+            const vEl = document.getElementById('mainVideo');
+            const aEl = document.getElementById('mainAudio');
+            if (vEl && vEl.currentTime) resumeTime = vEl.currentTime;
+            if (aEl && aEl.currentTime) resumeTime = aEl.currentTime;
+            request.currentTime = resumeTime;
+            request.autoplay = true;
+
+            session.loadMedia(request).then(
+                () => {
+                    showToast("Transmitiendo a la pantalla: " + title);
+                },
+                (errorCode) => {
+                    console.log("Error al cargar en Cast:", errorCode);
+                }
+            );
+        }
+
+        function toggleCastPlayback() {
+            if (window.cast && window.cast.framework) {
+                const context = cast.framework.CastContext.getInstance();
+                if (context) {
+                    context.requestSession().then(
+                        () => {},
+                        (err) => {
+                            if (err !== 'cancel') {
+                                console.log("Cast requestSession:", err);
+                                fallbackCastPrompt();
+                            }
+                        }
+                    );
+                    return;
+                }
+            }
+            fallbackCastPrompt();
+        }
+
+        function fallbackCastPrompt() {
+            const activeMediaEl = document.getElementById('mainVideo') || document.getElementById('mainAudio');
+            if (activeMediaEl) {
+                if (activeMediaEl.webkitShowPlaybackTargetPicker) {
+                    activeMediaEl.webkitShowPlaybackTargetPicker();
+                    return;
+                }
+                if (activeMediaEl.remote && typeof activeMediaEl.remote.prompt === 'function') {
+                    activeMediaEl.remote.prompt().then(() => {
+                        showToast("Conectando con pantalla remota...");
+                    }).catch(e => {
+                        console.log("Remote playback prompt:", e);
+                        showToast("Usa Google Chrome / Edge / Safari para transmitir a la TV");
+                    });
+                    return;
+                }
+            }
+            showToast("Abre esta página en Google Chrome o Edge en la misma red Wi-Fi para transmitir.");
         }
 
         // ================= CONTROLES AVANZADOS VLC WEB PLAYER =================
@@ -1177,7 +1397,9 @@
             if (vVid) {
                 vVid.src = ep.url;
                 vVid.load();
-                vVid.play().catch(e => console.log("Reproducción automática:", e));
+                if (!isCasting) {
+                    vVid.play().catch(e => console.log("Reproducción automática:", e));
+                }
             }
 
             if (titleElement) {
@@ -1185,6 +1407,10 @@
             }
 
             updateVlcLinks(ep.downloadUrl || ep.url);
+
+            if (isCasting) {
+                loadMediaToCast();
+            }
 
             if (container) {
                 const items = container.querySelectorAll('.episode-item');
@@ -1281,7 +1507,11 @@
             trackTitle.innerText = item.title;
             updateVlcLinks(item.url);
 
-            const items = document.querySelectorAll('#audioListContainer .playlist-item');
+            if (isCasting) {
+                loadMediaToCast();
+            }
+
+            const items = document.querySelectorAll('#audioListContainer .episode-item, #audioListContainer .playlist-item');
             items.forEach((elem, i) => {
                 if (i === index) elem.classList.add('active');
                 else elem.classList.remove('active');

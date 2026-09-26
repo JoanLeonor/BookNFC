@@ -136,12 +136,12 @@ El servidor se ejecutará por defecto en `http://0.0.0.0:5000/`, accesible desde
 
 ---
 
-## 🖥️ Despliegue en Servidor Local (IP Actual: 192.168.0.11)
+## 🖥️ Despliegue en Servidor Local (IP Actual: 192.168.0.179)
 
 Para conectarte al servidor local vía SSH:
 
 ```bash
-ssh joanml@192.168.0.11
+ssh joanml@192.168.0.179
 # Contraseña: joanml
 cd ~/tapbox
 ```

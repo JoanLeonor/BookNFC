@@ -1942,11 +1942,19 @@ def admin():
     books = load_books()
     
     # Calcular cantidades por tipo de contenido
-    type_counts = {'book': 0, 'movie': 0, 'series': 0, 'music': 0, 'anime': 0, 'manga': 0}
+    type_counts = {'book': 0, 'movie': 0, 'series': 0, 'music': 0, 'anime': 0, 'manga': 0, 'game': 0}
     for b in books:
         t = b.get('type', 'book')
         if t in type_counts:
             type_counts[t] += 1
+
+    # Calcular cantidad total de portadas en COVER_FOLDER
+    covers_count = 0
+    if os.path.exists(COVER_FOLDER):
+        try:
+            covers_count = len([f for f in os.listdir(COVER_FOLDER) if not f.startswith('.') and os.path.isfile(os.path.join(COVER_FOLDER, f))])
+        except Exception:
+            covers_count = 0
             
     # Calcular cantidades por categoría
     category_counts = {}
@@ -1964,6 +1972,7 @@ def admin():
     
     return render_template('admin.html', 
                            books=books, 
+                           covers_count=covers_count,
                            config=config, 
                            disk=disk, 
                            random_nfc=random_nfc,
@@ -2183,7 +2192,7 @@ def folder_upload_api():
         unique_id = str(uuid.uuid4())[:8]
         cover_filename = save_media_cover(unique_id, cover_file, uploaded_files)
 
-        if media_type in ['book', 'manga', 'movie']:
+        if media_type in ['book', 'manga', 'movie', 'game']:
             # Archivo único
             first_file = uploaded_files[0]
             ext_file = os.path.splitext(first_file.filename)[1]

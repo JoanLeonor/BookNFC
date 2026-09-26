@@ -292,63 +292,64 @@
                 <button type="button" class="btn btn-primary" onclick="startImport()"><i class="fa-solid fa-cloud-arrow-up"></i> Iniciar Importación</button>
             </div>
 
-            <!-- CONFIGURACIÓN GENERAL DEL LOTE (FOLDER IMPORT) -->
-            <div class="work-card" style="margin-bottom: 25px; border: 1px solid var(--accent-cyan);">
-                <div class="work-card-header" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-gears" style="color: var(--accent-cyan);"></i>
-                    <span>Configuración General de la Importación (Se aplicará a todas las obras)</span>
+            <!-- FORMULARIO SUPERIOR: METADATOS PRINCIPALES DE LA OBRA -->
+            <div class="work-card" id="mainMetadataCard" style="margin-bottom: 25px; border: 1px solid var(--accent-cyan);">
+                <div class="work-card-header" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-file-pen" style="color: var(--accent-cyan);"></i>
+                        <span><strong>Información y Metadatos de la Obra</strong></span>
+                    </div>
+                    <span id="txtBadgeTop" style="display: none; background: rgba(0, 242, 254, 0.12); color: var(--accent-cyan); border: 1px solid rgba(0, 242, 254, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.8em;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Metadatos extraídos de .txt
+                    </span>
                 </div>
-                <div class="form-grid">
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr; margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label>Título de la obra *</label>
+                        <input type="text" id="mainTitle" required placeholder="Ej: BLUE LOCK">
+                    </div>
+                    <div class="form-group">
+                        <label>Autor / Estudio *</label>
+                        <input type="text" id="mainAuthor" required placeholder="Ej: 8-bit, Ado...">
+                    </div>
+                    <div class="form-group">
+                        <label>Saga / Franquicia / Álbum</label>
+                        <input type="text" id="mainSaga" placeholder="Ej: Blue Lock">
+                    </div>
+                </div>
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 12px;">
                     <div class="form-group">
                         <label>Tipo de Contenido *</label>
-                        <select id="globalType" required onchange="updateAllImportedWorksType(this.value)" style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 6px; font-size: 0.9em; width: 100%;">
+                        <select id="mainType" required>
+                            <option value="anime">Anime</option>
+                            <option value="series">Serie</option>
+                            <option value="movie">Película</option>
                             <option value="book">Libro</option>
                             <option value="manga">Manga / Cómic</option>
-                            <option value="movie">Película</option>
-                            <option value="series">Serie</option>
-                            <option value="music" selected>Música</option>
-                            <option value="anime">Anime</option>
+                            <option value="music">Música</option>
+                            <option value="game">Videojuego</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Autor / Creador *</label>
-                        <input type="text" id="globalAuthor" required placeholder="Ej: Ado" style="width: 100%;">
+                        <label>Género / Categorías</label>
+                        <input type="text" id="mainCategory" placeholder="Ej: Acción, Drama, Deporte">
                     </div>
                     <div class="form-group">
-                        <label>Saga / Grupo / Álbum *</label>
-                        <input type="text" id="globalSaga" required placeholder="Ej: Zunmo" style="width: 100%;">
+                        <label>Llave NFC (Opcional)</label>
+                        <input type="text" id="mainNfcKey" placeholder="Dejar en blanco para autogenerar">
                     </div>
+                </div>
+                <div class="form-grid">
                     <div class="form-group full">
-                        <label>Categorías / Géneros (Selección Múltiple: Ctrl + Click) *</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <select id="globalCategory" multiple required style="background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.9em; height: 120px; width: 100%;">
-                                <option value="Terror">Terror</option>
-                                <option value="Aventura">Aventura</option>
-                                <option value="Acción">Acción</option>
-                                <option value="Comedia">Comedia</option>
-                                <option value="Drama">Drama</option>
-                                <option value="Fantasía">Fantasía</option>
-                                <option value="Suspenso">Suspenso</option>
-                                <option value="Ciencia Ficción">Ciencia Ficción</option>
-                                <option value="Música" selected>Música</option>
-                                <option value="Documental">Documental</option>
-                                <option value="Ingeniería">Ingeniería</option>
-                                <option value="Historia">Historia</option>
-                                <option value="Infantil">Infantil</option>
-                                <option value="Romance">Romance</option>
-                            </select>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="font-size: 0.85em; color: var(--text-muted);">¿Otra Categoría Manual?</label>
-                                <input type="text" id="globalCustomCategory" placeholder="Ej: J-Pop, Anime OST..." style="width: 100%;">
-                                <small style="font-size: 0.75em; color: var(--text-muted); line-height: 1.3;">Para seleccionar varios, mantén presionada la tecla <strong>Ctrl</strong> (o <strong>Cmd</strong> en Mac) mientras haces clic.</small>
-                            </div>
-                        </div>
+                        <label>Sinopsis / Descripción</label>
+                        <textarea id="mainSynopsis" rows="3" placeholder="Sinopsis descriptiva..."></textarea>
                     </div>
                 </div>
             </div>
 
+            <!-- Listado de Archivos y Portadas de las Obras Detectadas -->
             <div id="worksList">
-                <!-- Se poblará dinámicamente con JavaScript -->
+                <!-- Se poblará dinámicamente con las carpetas, archivos y portadas -->
             </div>
         </div>
     </div>
@@ -659,13 +660,15 @@
                 }
                 if (!detectedCategory && hasAudio) detectedCategory = "Música";
 
-                // Buscar sinopsis txt matching
+                // Buscar sinopsis / info txt matching
                 let synopsisText = 'Sin sinopsis disponible.';
                 let txtFile = null;
                 if (group.txtFiles.length > 0) {
                     txtFile = group.txtFiles.find(f => 
                         f.name.toLowerCase().includes('sinopsis') || 
-                        f.name.toLowerCase().includes('info')
+                        f.name.toLowerCase().includes('info') ||
+                        f.name.toLowerCase().includes('desc') ||
+                        f.name.toLowerCase().includes('release')
                     ) || group.txtFiles[0];
                 }
 
@@ -693,7 +696,8 @@
                         contentFiles: group.contents,
                         synopsis: synopsisText,
                         detectedType: detectedType,
-                        images: group.images
+                        images: group.images,
+                        hasTxtMeta: false
                     };
 
                     // Si es música, intentar consultar metadatos incrustados de la 1ra pista
@@ -726,7 +730,17 @@
                         const promise = new Promise((resolve) => {
                             const reader = new FileReader();
                             reader.onload = function(e) {
-                                groupedWorks[uniqueKey].synopsis = e.target.result.trim();
+                                const rawText = e.target.result;
+                                const parsed = parseInfoText(rawText);
+                                if (parsed) {
+                                    if (parsed.title) groupedWorks[uniqueKey].title = parsed.title;
+                                    if (parsed.author) groupedWorks[uniqueKey].author = parsed.author;
+                                    if (parsed.saga) groupedWorks[uniqueKey].saga = parsed.saga;
+                                    if (parsed.category) groupedWorks[uniqueKey].category = parsed.category;
+                                    if (parsed.type) groupedWorks[uniqueKey].detectedType = parsed.type;
+                                    if (parsed.synopsis) groupedWorks[uniqueKey].synopsis = parsed.synopsis;
+                                    groupedWorks[uniqueKey].hasTxtMeta = parsed.hasMeta;
+                                }
                                 resolve();
                             };
                             reader.onerror = () => resolve();
@@ -735,7 +749,7 @@
                         promises.push(promise);
                     }
                 } else {
-                    // UNA OBRA POR ARCHIVO (Libros, Películas)
+                    // UNA OBRA POR ARCHIVO (Libros, Películas, Mangas)
                     group.contents.forEach((contentFile, contentIdx) => {
                         const filename = contentFile.name;
                         const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -762,7 +776,8 @@
                             contentFiles: [contentFile],
                             synopsis: synopsisText,
                             detectedType: detectedType,
-                            images: group.images
+                            images: group.images,
+                            hasTxtMeta: false
                         };
 
                         let specificTxt = txtFile;
@@ -778,7 +793,17 @@
                             const promise = new Promise((resolve) => {
                                 const reader = new FileReader();
                                 reader.onload = function(e) {
-                                    groupedWorks[uniqueKey].synopsis = e.target.result.trim();
+                                    const rawText = e.target.result;
+                                    const parsed = parseInfoText(rawText);
+                                    if (parsed) {
+                                        if (parsed.title) groupedWorks[uniqueKey].title = parsed.title;
+                                        if (parsed.author) groupedWorks[uniqueKey].author = parsed.author;
+                                        if (parsed.saga) groupedWorks[uniqueKey].saga = parsed.saga;
+                                        if (parsed.category) groupedWorks[uniqueKey].category = parsed.category;
+                                        if (parsed.type) groupedWorks[uniqueKey].detectedType = parsed.type;
+                                        if (parsed.synopsis) groupedWorks[uniqueKey].synopsis = parsed.synopsis;
+                                        groupedWorks[uniqueKey].hasTxtMeta = parsed.hasMeta;
+                                    }
                                     resolve();
                                 };
                                 reader.onerror = () => resolve();
@@ -795,42 +820,141 @@
                 if (keys.length > 0) {
                     const firstWork = groupedWorks[keys[0]];
                     
-                    const typeSel = document.getElementById('globalType');
-                    if (typeSel) typeSel.value = firstWork.detectedType;
+                    const titleInp = document.getElementById('mainTitle');
+                    if (titleInp && firstWork.title) titleInp.value = firstWork.title;
                     
-                    const authorInp = document.getElementById('globalAuthor');
-                    if (authorInp) authorInp.value = firstWork.author || '';
+                    const authorInp = document.getElementById('mainAuthor');
+                    if (authorInp && firstWork.author) authorInp.value = firstWork.author;
                     
-                    const sagaInp = document.getElementById('globalSaga');
-                    if (sagaInp) sagaInp.value = firstWork.saga || '';
+                    const sagaInp = document.getElementById('mainSaga');
+                    if (sagaInp && firstWork.saga) sagaInp.value = firstWork.saga;
                     
-                    const catSel = document.getElementById('globalCategory');
-                    const customCatInp = document.getElementById('globalCustomCategory');
-                    if (catSel) {
-                        for (let o = 0; o < catSel.options.length; o++) {
-                            catSel.options[o].selected = false;
-                        }
-                        
-                        if (firstWork.category) {
-                            let found = false;
-                            for (let o = 0; o < catSel.options.length; o++) {
-                                if (catSel.options[o].value.toLowerCase() === firstWork.category.toLowerCase()) {
-                                    catSel.options[o].selected = true;
-                                    found = true;
-                                }
-                            }
-                            if (!found && customCatInp) {
-                                customCatInp.value = firstWork.category;
-                            } else if (customCatInp) {
-                                customCatInp.value = '';
-                            }
-                        } else if (customCatInp) {
-                            customCatInp.value = '';
-                        }
+                    const typeSel = document.getElementById('mainType');
+                    if (typeSel && firstWork.detectedType) typeSel.value = firstWork.detectedType;
+                    
+                    const catInp = document.getElementById('mainCategory');
+                    if (catInp && firstWork.category) catInp.value = firstWork.category;
+                    
+                    const nfcInp = document.getElementById('mainNfcKey');
+                    if (nfcInp && firstWork.nfc_key) nfcInp.value = firstWork.nfc_key;
+                    
+                    const synInp = document.getElementById('mainSynopsis');
+                    if (synInp && firstWork.synopsis && firstWork.synopsis !== 'Sin sinopsis disponible.') {
+                        synInp.value = firstWork.synopsis;
+                    }
+                    
+                    const txtBadge = document.getElementById('txtBadgeTop');
+                    if (txtBadge) {
+                        txtBadge.style.display = firstWork.hasTxtMeta ? 'inline-flex' : 'none';
                     }
                 }
                 renderPreview();
             });
+        }
+
+        // PARSER INTELIGENTE DE METADATOS DESDE ARCHIVOS TXT
+        function parseInfoText(text) {
+            if (!text || typeof text !== 'string') return null;
+            
+            const lines = text.split(/\r?\n/);
+            const result = {
+                title: '',
+                author: '',
+                saga: '',
+                type: '',
+                category: '',
+                year: '',
+                synopsis: '',
+                hasMeta: false
+            };
+            
+            let inSynopsis = false;
+            let synopsisLines = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const rawLine = lines[i].trim();
+                if (!rawLine) {
+                    if (inSynopsis) {
+                        synopsisLines.push('');
+                    }
+                    continue;
+                }
+                
+                // Detectar inicio de bloque de sinopsis
+                const synMatch = rawLine.match(/^(?:[^\w\s]*\s*[❘|•\-\*]*\s*)?(?:📜|📝|📖)?\s*\**\s*(?:sinopsis|synopsis|descripci[oó]n|resumen|plot|story)\s*\**\s*[:：]\s*(.*)$/i);
+                if (synMatch) {
+                    inSynopsis = true;
+                    result.hasMeta = true;
+                    if (synMatch[1] && synMatch[1].trim()) {
+                        synopsisLines.push(synMatch[1].trim());
+                    }
+                    continue;
+                }
+                
+                if (inSynopsis) {
+                    // Si encontramos otra clave estructurada conocida, salimos del modo sinopsis
+                    const otherKeyMatch = rawLine.match(/^(?:[^\w\s]*\s*[❘|•\-\*]*\s*)?(?:▶️|🏦|📆|📎|🖋|🎧|💬|🏷|📇|🔄|📐|⏳)?\s*\**\s*(t[ií]tulo|title|estudio|studio|autor|author|tipo|type|a[ñn]o|year|g[eé]nero|genre|categor[ií]a|episodios|audio|subt[ií]tulos|fansub|encoder|resoluci[oó]n|estado)\s*\**\s*[:：]/i);
+                    if (otherKeyMatch) {
+                        inSynopsis = false;
+                    } else {
+                        synopsisLines.push(rawLine);
+                        continue;
+                    }
+                }
+                
+                // Parsear pares clave: valor limpiando emojis y caracteres separadores (ej: ▶️ ❘ Título: Valor)
+                const kvMatch = rawLine.match(/^(?:[^\w\s\(\)]*\s*[❘|•\-\*]*\s*)?\**\s*([a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+)\s*\**\s*[:：]\s*(.+)$/);
+                if (kvMatch) {
+                    const rawKey = kvMatch[1].trim().toLowerCase();
+                    const val = kvMatch[2].replace(/^[\s*]+|[\s*]+$/g, '').trim();
+                    if (!val) continue;
+                    
+                    result.hasMeta = true;
+                    
+                    if (/^(t[ií]tulo|title|nombre)$/i.test(rawKey)) {
+                        result.title = val;
+                    } else if (/^(estudio|studio|autor|author|creador|artista|artist|mangaka|productora)$/i.test(rawKey)) {
+                        result.author = val;
+                    } else if (/^(saga|franquicia|serie|album|[aá]lbum)$/i.test(rawKey)) {
+                        result.saga = val;
+                    } else if (/^(tipo|type|formato)$/i.test(rawKey)) {
+                        const lv = val.toLowerCase();
+                        if (lv.includes('anime') || lv.includes('animé') || lv.includes('ova') || lv.includes('serie') || lv.includes('tv')) {
+                            result.type = 'anime';
+                        } else if (lv.includes('película') || lv.includes('pelicula') || lv.includes('movie') || lv.includes('film')) {
+                            result.type = 'movie';
+                        } else if (lv.includes('manga') || lv.includes('cómic') || lv.includes('comic')) {
+                            result.type = 'manga';
+                        } else if (lv.includes('libro') || lv.includes('book') || lv.includes('novela')) {
+                            result.type = 'book';
+                        } else if (lv.includes('música') || lv.includes('musica') || lv.includes('music') || lv.includes('ost') || lv.includes('audio')) {
+                            result.type = 'music';
+                        } else if (lv.includes('juego') || lv.includes('game') || lv.includes('rom')) {
+                            result.type = 'game';
+                        }
+                    } else if (/^(g[eé]nero|genero|genre|categor[ií]a|categoria|tags)$/i.test(rawKey)) {
+                        result.category = val;
+                    } else if (/^(a[ñn]o|year|fecha|date)$/i.test(rawKey)) {
+                        result.year = val;
+                    }
+                }
+            }
+            
+            if (synopsisLines.length > 0) {
+                result.synopsis = synopsisLines.join('\n').trim();
+            } else if (!result.hasMeta) {
+                result.synopsis = text.trim();
+            }
+            
+            // Si tiene título pero no saga explícita, podemos sugerir la saga base
+            if (result.title && !result.saga) {
+                const sagaGuess = result.title.replace(/\s*(?:vs\.?|temporada|\bseason\b|\bvolumen\b|\bvol\b|\bpart\b|\bparte\b).*$/i, '').trim();
+                if (sagaGuess && sagaGuess.length >= 3 && sagaGuess !== result.title) {
+                    result.saga = sagaGuess;
+                }
+            }
+            
+            return result;
         }
 
         // RENDERIZAR LA PREVISUALIZACIÓN DE OBRAS
@@ -854,28 +978,16 @@
 
                 card.innerHTML = `
                     <div class="work-card-header">
-                        <span><strong>Obra #${idx + 1}: ${work.title}</strong></span>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span><strong><i class="fa-solid fa-folder-tree" style="color: var(--accent-cyan); margin-right: 6px;"></i> Carpeta / Parte #${idx + 1}: ${work.title}</strong></span>
+                        </div>
                         <div>
-                            <span class="file-info-badge"><i class="fa-solid fa-file"></i> ${work.contentFiles.length} archivo(s) detectado(s)</span>
-                        </div>
-                    </div>
-                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-                        <div class="form-group">
-                            <label>Título de la obra</label>
-                            <input type="text" value="${work.title}" oninput="updateWorkMeta('${key}', 'title', this.value)" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Llave NFC (Opcional)</label>
-                            <input type="text" placeholder="Dejar en blanco para autogenerar" oninput="updateWorkMeta('${key}', 'nfc_key', this.value)">
-                        </div>
-                        <div class="form-group full">
-                            <label>Sinopsis / Descripción</label>
-                            <textarea rows="2" oninput="updateWorkMeta('${key}', 'synopsis', this.value)">${work.synopsis}</textarea>
+                            <span class="file-info-badge"><i class="fa-solid fa-file"></i> ${work.contentFiles.length} archivo(s)</span>
                         </div>
                     </div>
 
-                    <!-- NUEVO GRID DE ASOCIACIÓN DE ARCHIVOS Y PORTADA -->
-                    <div class="media-association-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <!-- GRID DE ASOCIACIÓN DE ARCHIVOS Y PORTADA -->
+                    <div class="media-association-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
                         <!-- Columna Izquierda: Archivos de Contenido (Ordenables) -->
                         <div class="form-group">
                             <label><i class="fa-solid fa-list-ol"></i> Archivos de Contenido (Ordena tus pistas/capítulos)</label>
@@ -1083,32 +1195,31 @@
                 detailsText.innerText = `Subiendo obra ${currentIdx + 1} de ${keys.length}: "${work.title}"`;
                 filenameText.innerText = `Preparando archivos...`;
 
-                // Leer configuraciones globales del lote
-                const type = document.getElementById('globalType').value;
-                const author = document.getElementById('globalAuthor').value.trim();
-                const saga = document.getElementById('globalSaga').value.trim();
-                
-                // Categorías múltiples
-                const selectedCategories = Array.from(document.getElementById('globalCategory').selectedOptions).map(opt => opt.value);
-                const customCat = document.getElementById('globalCustomCategory').value.trim();
-                if (customCat) {
-                    customCat.split(',').forEach(c => {
-                        const cleanC = c.trim();
-                        if (cleanC && !selectedCategories.includes(cleanC)) {
-                            selectedCategories.push(cleanC);
-                        }
-                    });
-                }
-                const categoryStr = selectedCategories.join(', ');
+                // Metadatos desde el formulario superior
+                const mainTitleVal = (document.getElementById('mainTitle')?.value || '').trim();
+                const mainAuthorVal = (document.getElementById('mainAuthor')?.value || '').trim();
+                const mainSagaVal = (document.getElementById('mainSaga')?.value || '').trim();
+                const mainTypeVal = document.getElementById('mainType')?.value || 'book';
+                const mainCategoryVal = (document.getElementById('mainCategory')?.value || '').trim();
+                const mainNfcKeyVal = (document.getElementById('mainNfcKey')?.value || '').trim();
+                const mainSynopsisVal = (document.getElementById('mainSynopsis')?.value || '').trim();
+
+                const title = (keys.length === 1 && mainTitleVal) ? mainTitleVal : (work.title || mainTitleVal);
+                const author = mainAuthorVal || work.author || '';
+                const saga = mainSagaVal || work.saga || '';
+                const type = mainTypeVal || work.detectedType || 'book';
+                const category = mainCategoryVal || work.category || (type === 'music' ? 'Música' : (type === 'anime' ? 'Anime' : 'General'));
+                const nfc_key = (keys.length === 1 && mainNfcKeyVal) ? mainNfcKeyVal : (work.nfc_key || '');
+                const synopsis = mainSynopsisVal || work.synopsis || '';
 
                 const formData = new FormData();
-                formData.append('title', work.title);
+                formData.append('title', title);
                 formData.append('author', author);
                 formData.append('saga', saga);
-                formData.append('category', categoryStr);
+                formData.append('category', category);
                 formData.append('type', type);
-                formData.append('nfc_key', work.nfc_key || '');
-                formData.append('synopsis', work.synopsis);
+                formData.append('nfc_key', nfc_key);
+                formData.append('synopsis', synopsis);
                 if (work.coverFile) {
                     formData.append('cover', work.coverFile);
                 }
