@@ -74,11 +74,12 @@ El proyecto está diseñado y optimizado para ser extremadamente ligero y eficie
 ```text
 TapBox/
 ├── app.py                  # Servidor principal Flask y backend integrado
-├── catalog.json            # Base de datos local principal en formato JSON
-├── books.json              # Base de datos legacy (migración automática a catalog.json)
-├── config.json             # Configuración del sistema y credenciales
-├── config.json.example     # Plantilla de configuración
-├── catalog.json.example    # Plantilla de base de datos de ejemplo
+├── db.py                   # Capa RDBMS PostgreSQL con pool de conexiones y transacciones
+├── migrate_json_to_postgres.py # Utilidad de migración JSON -> PostgreSQL
+├── catalog.json            # Respaldo / snapshot de exportación del catálogo
+├── books.json              # Base de datos legacy
+├── config.json             # Configuración del sistema, credenciales y conexión PostgreSQL
+├── config.json.example     # Plantilla de configuración con parámetros PostgreSQL
 ├── notas.md                # Notas de servidores, comandos, credenciales y puertos
 ├── Capturas/               # Capturas de pantalla del sistema
 ├── static/
@@ -136,12 +137,12 @@ El servidor se ejecutará por defecto en `http://0.0.0.0:5000/`, accesible desde
 
 ---
 
-## 🖥️ Despliegue en Servidor Local (IP Actual: 192.168.0.179)
+## 🖥️ Despliegue en Servidor Local (IP Actual: 192.168.0.238)
 
 Para conectarte al servidor local vía SSH:
 
 ```bash
-ssh joanml@192.168.0.179
+ssh joanml@192.168.0.238
 # Contraseña: joanml
 cd ~/tapbox
 ```
@@ -179,30 +180,41 @@ Almacena la contraseña administrativa, la ruta de la biblioteca multimedia y la
 }
 ```
 
-### 2. `catalog.json`
-Estructura de registro de una obra en el catálogo:
-```json
-[
-    {
-        "id": "3c6d150e",
-        "title": "Nombre de la Obra",
-        "type": "manga",
-        "author": "Nombre del Autor / Estudio",
-        "saga": "Nombre de la Saga",
-        "category": "Acción, Fantasía",
-        "nfc_key": "NFC-QZP519",
-        "synopsis": "Sinopsis o descripción de la obra.",
-        "cover": "cover_3c6d150e.jpg",
-        "file": "doc_3c6d150e.cbr",
-        "show_in_gallery": true,
-        "is_saga_cover": false,
-        "saga_random_cover": true
-    }
-]
+### 2. Base de Datos RDBMS (PostgreSQL 16)
+El sistema opera sobre PostgreSQL con pool de conexiones (`ThreadedConnectionPool`) y tabla relacional indexada `works`:
+
+```sql
+CREATE TABLE works (
+    id VARCHAR(32) PRIMARY KEY,
+    title VARCHAR(512) NOT NULL,
+    type VARCHAR(64) NOT NULL,
+    author VARCHAR(512) DEFAULT '',
+    saga VARCHAR(512) DEFAULT '',
+    category VARCHAR(512) DEFAULT '',
+    genres VARCHAR(512) DEFAULT '',
+    nfc_key VARCHAR(128) DEFAULT '',
+    synopsis TEXT DEFAULT '',
+    "desc" TEXT DEFAULT '',
+    cover VARCHAR(512) DEFAULT '',
+    file JSONB NOT NULL DEFAULT '""'::jsonb,
+    storage VARCHAR(128) DEFAULT '',
+    date_added VARCHAR(64) DEFAULT '',
+    show_in_gallery BOOLEAN DEFAULT TRUE,
+    is_saga_cover BOOLEAN DEFAULT FALSE,
+    saga_random_cover BOOLEAN DEFAULT FALSE,
+    extra_data JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_works_type ON works(type);
+CREATE INDEX idx_works_nfc_key ON works(nfc_key);
+CREATE INDEX idx_works_saga ON works(saga);
+CREATE INDEX idx_works_title ON works(title);
 ```
 
-* `id`: Identificador único de 8 caracteres.
-* `type`: Tipo de contenido (`book`, `manga`, `movie`, `series`, `anime`, `music`).
-* `nfc_key`: Clave vinculada a la etiqueta NFC física.
+* `id`: Identificador único de la obra (clave primaria).
+* `type`: Tipo de contenido (`book`, `manga`, `movie`, `series`, `anime`, `music`, `game`).
+* `nfc_key`: Clave NFC física vinculada (búsqueda indexada instantánea).
 * `cover`: Portada en `static/covers/`.
-* `file`: Archivo principal o lista de archivos de episodios en `static/uploads/` o ruta de biblioteca.
+* `file`: Ruta del archivo principal o array JSONB con la lista de pistas / episodios.

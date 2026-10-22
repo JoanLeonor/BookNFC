@@ -3,7 +3,7 @@ import json
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect('192.168.0.179', username='joanml', password='joanml', timeout=15)
+client.connect('192.168.0.238', username='joanml', password='joanml', timeout=15)
 
 stdin, stdout, stderr = client.exec_command('curl -s "http://127.0.0.1:9117/api/v2.0/indexers/1337x/results?apikey=9ropgyn0hkj89jh83d0laljjzaac2xbi&Query=matrix"')
 out = stdout.read().decode('utf-8')

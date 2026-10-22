@@ -3,7 +3,7 @@ import json
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect('192.168.0.179', username='joanml', password='joanml', timeout=15)
+client.connect('192.168.0.238', username='joanml', password='joanml', timeout=15)
 
 def run_sudo(cmd):
     stdin, stdout, stderr = client.exec_command(f'echo joanml | sudo -S {cmd}')

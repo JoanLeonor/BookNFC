@@ -3,7 +3,7 @@ import json
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect('192.168.0.179', username='joanml', password='joanml', timeout=15)
+client.connect('192.168.0.238', username='joanml', password='joanml', timeout=15)
 
 script = """
 import urllib.request
@@ -26,7 +26,7 @@ if torznab_schema:
     torznab_schema['enableInteractiveSearch'] = True
     for f in torznab_schema['fields']:
         if f['name'] == 'baseUrl':
-            f['value'] = 'http://192.168.0.11:9117/api/v2.0/indexers/1337x/results/torznab/'
+            f['value'] = 'http://192.168.0.238:9117/api/v2.0/indexers/1337x/results/torznab/'
         elif f['name'] == 'apiPath':
             f['value'] = '/api'
         elif f['name'] == 'apiKey':
@@ -59,7 +59,7 @@ if s_torznab:
     s_torznab['enableInteractiveSearch'] = True
     for f in s_torznab['fields']:
         if f['name'] == 'baseUrl':
-            f['value'] = 'http://192.168.0.11:9117/api/v2.0/indexers/1337x/results/torznab/'
+            f['value'] = 'http://192.168.0.238:9117/api/v2.0/indexers/1337x/results/torznab/'
         elif f['name'] == 'apiPath':
             f['value'] = '/api'
         elif f['name'] == 'apiKey':
